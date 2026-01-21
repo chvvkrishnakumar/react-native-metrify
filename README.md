@@ -115,40 +115,66 @@ export default function Dashboard() {
 ## 📊 Available Charts
 
 ### Core Widgets
-- **KPI** - Display key metrics with trends and formatting
-- **Gauge** - Circular or semi-circular gauge charts
-- **Progress** - Linear progress bars with variants
-- **Sparkline** - Minimal inline charts
 
-### Line & Area Charts
-- **LineChart** - Single or multi-line charts
-- **AreaChart** - Filled area charts
-- **MultiLineSparkline** - Compact multi-line visualization
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/kpi.png" width="200" alt="KPI Widget"/><br/>
+      <b>KPI</b><br/>
+      <sub>Key metrics with trends</sub>
+    </td>
+    <td align="center" width="25%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/gauge.png" width="200" alt="Gauge Widget"/><br/>
+      <b>Gauge</b><br/>
+      <sub>Circular progress indicators</sub>
+    </td>
+    <td align="center" width="25%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/sparkline.png" width="200" alt="Sparkline"/><br/>
+      <b>Sparkline</b><br/>
+      <sub>Compact trend lines</sub>
+    </td>
+    <td align="center" width="25%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/progress.png" width="200" alt="Progress"/><br/>
+      <b>Progress</b><br/>
+      <sub>Progress bars</sub>
+    </td>
+  </tr>
+</table>
 
-### Bar Charts
-- **BarChart** - Vertical bar charts
-- **HorizontalBarChart** - Horizontal bar charts
-- **StackedBarChart** - Stacked bar visualization
-- **GroupedBarChart** - Side-by-side bars
-- **WaterfallChart** - Cumulative change visualization
+### Popular Charts
 
-### Distribution & Comparison
-- **PieChart** - Pie and donut charts
-- **FunnelChart** - Conversion funnel visualization
-- **Histogram** - Distribution frequency charts
-- **BoxPlot** - Statistical box and whisker plots
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/line-chart.png" width="200" alt="Line Chart"/><br/>
+      <b>LineChart</b>
+    </td>
+    <td align="center" width="25%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/bar-chart.png" width="200" alt="Bar Chart"/><br/>
+      <b>BarChart</b>
+    </td>
+    <td align="center" width="25%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/area-chart.png" width="200" alt="Area Chart"/><br/>
+      <b>AreaChart</b>
+    </td>
+    <td align="center" width="25%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/pie-chart.png" width="200" alt="Pie Chart"/><br/>
+      <b>PieChart</b>
+    </td>
+  </tr>
+</table>
 
-### Scientific & Advanced
-- **ScatterPlot** - X-Y scatter charts with optional bubbles
-- **BubbleChart** - Multi-dimensional bubble visualization
-- **Heatmap** - Grid-based heat intensity maps
-- **RadarChart** - Multi-axis spider charts
-- **CandlestickChart** - Financial OHLC charts
+### All Chart Types
 
-### Hierarchical & Flow
-- **Treemap** - Hierarchical rectangle visualization
-- **SunburstChart** - Radial hierarchical charts
-- **SankeyDiagram** - Flow and relationship visualization
+**Bar Charts:** BarChart, HorizontalBarChart, StackedBarChart, GroupedBarChart, WaterfallChart, Histogram
+
+**Line & Area:** LineChart, AreaChart, MultiLineSparkline
+
+**Distribution:** PieChart, FunnelChart, BoxPlot
+
+**Scientific:** ScatterPlot, BubbleChart, Heatmap, RadarChart, CandlestickChart
+
+**Hierarchical:** Treemap, SunburstChart, SankeyDiagram
 
 ## 🎨 Theming
 

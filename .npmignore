@@ -1,3 +1,11 @@
+# Documentation and images (keep in repo, exclude from npm)
+docs/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+
 # Source files (included via package.json files field)
 # src/
 
