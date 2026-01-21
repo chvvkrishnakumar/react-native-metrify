@@ -114,52 +114,62 @@ export default function Dashboard() {
 
 ## 📊 Available Charts
 
-### Core Widgets
+### Widget Showcase
 
 <table>
   <tr>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/kpi.png" width="200" alt="KPI Widget"/><br/>
-      <b>KPI</b><br/>
-      <sub>Key metrics with trends</sub>
+    <td align="center" width="50%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/core-widgets.png" width="400" alt="Core Widgets"/><br/>
+      <b>Core Widgets</b><br/>
+      <sub>KPI • Gauge • Progress • Sparkline</sub>
     </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/gauge.png" width="200" alt="Gauge Widget"/><br/>
-      <b>Gauge</b><br/>
-      <sub>Circular progress indicators</sub>
-    </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/sparkline.png" width="200" alt="Sparkline"/><br/>
-      <b>Sparkline</b><br/>
-      <sub>Compact trend lines</sub>
-    </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/progress.png" width="200" alt="Progress"/><br/>
-      <b>Progress</b><br/>
-      <sub>Progress bars</sub>
+    <td align="center" width="50%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/line-area-charts.png" width="400" alt="Line & Area Charts"/><br/>
+      <b>Line & Area Charts</b><br/>
+      <sub>LineChart • AreaChart • MultiLineSparkline</sub>
     </td>
   </tr>
-</table>
-
-### Popular Charts
-
-<table>
   <tr>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/line-chart.png" width="200" alt="Line Chart"/><br/>
-      <b>LineChart</b>
+    <td align="center" width="50%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/bar-charts.png" width="400" alt="Bar Charts"/><br/>
+      <b>Bar Charts</b><br/>
+      <sub>BarChart • HorizontalBarChart • StackedBarChart</sub>
     </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/bar-chart.png" width="200" alt="Bar Chart"/><br/>
-      <b>BarChart</b>
+    <td align="center" width="50%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/bar-charts-2.png" width="400" alt="More Bar Charts"/><br/>
+      <b>More Bar Charts</b><br/>
+      <sub>GroupedBarChart • Histogram • WaterfallChart</sub>
     </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/area-chart.png" width="200" alt="Area Chart"/><br/>
-      <b>AreaChart</b>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/distribution-charts.png" width="400" alt="Distribution Charts"/><br/>
+      <b>Distribution Charts</b><br/>
+      <sub>PieChart • FunnelChart</sub>
     </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/pie-chart.png" width="200" alt="Pie Chart"/><br/>
-      <b>PieChart</b>
+    <td align="center" width="50%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/scientific-charts.png" width="400" alt="Scientific Charts"/><br/>
+      <b>Scientific Charts</b><br/>
+      <sub>ScatterPlot • BubbleChart • Heatmap</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/advanced-charts.png" width="400" alt="Advanced Charts"/><br/>
+      <b>Advanced Charts</b><br/>
+      <sub>RadarChart • CandlestickChart</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/treemap-sunburst-chart.png" width="400" alt="Hierarchical Charts"/><br/>
+      <b>Hierarchical Charts</b><br/>
+      <sub>Treemap • SunburstChart</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <img src="https://raw.githubusercontent.com/chvvkrishnakumar/react-native-metrify/main/docs/images/widgets/sankey-diagram.png" width="400" alt="Flow Diagram"/><br/>
+      <b>Flow Diagram</b><br/>
+      <sub>SankeyDiagram</sub>
     </td>
   </tr>
 </table>
