@@ -88,24 +88,48 @@ export default function Dashboard() {
   return (
     <View>
       <KPI
-        value={1234}
-        label="Total Sales"
-        trend={12.5}
-        format="currency"
+        data={{
+          value: 1234,
+          label: 'Total Sales',
+          delta: 12.5,
+          trend: 'up',
+          format: 'currency',
+          currency: 'USD',
+        }}
+        width={300}
+        height={120}
       />
 
       <LineChart
-        data={[10, 25, 15, 40, 30, 55, 45]}
+        data={{
+          series: [{
+            data: [
+              { x: 0, y: 10 },
+              { x: 1, y: 25 },
+              { x: 2, y: 15 },
+              { x: 3, y: 40 },
+              { x: 4, y: 30 },
+              { x: 5, y: 55 },
+              { x: 6, y: 45 },
+            ],
+            color: '#007AFF',
+          }],
+        }}
         width={300}
         height={200}
       />
 
       <Gauge
-        value={75}
-        min={0}
-        max={100}
+        data={{
+          value: 75,
+          max: 100,
+          label: 'Progress',
+          unit: '%',
+        }}
         width={200}
         height={200}
+        startAngle={-120}
+        endAngle={120}
       />
     </View>
   );
@@ -347,21 +371,21 @@ MIT © [Krishna Kumar](https://github.com/chvvkrishnakumar)
 ## 🔗 Links
 
 - [Documentation](https://github.com/chvvkrishnakumar/react-native-metrify#readme)
-- [Examples](./examples/)
+- [Examples](https://github.com/chvvkrishnakumar/react-native-metrify/tree/main/examples/basic-demo)
 - [Changelog](./CHANGELOG.md)
 - [Issues](https://github.com/chvvkrishnakumar/react-native-metrify/issues)
 
 ## 💡 Examples
 
-Check out the [examples directory](./examples/expo-template/) for a full-featured demo app showcasing all chart types.
+Check out the [examples directory](https://github.com/chvvkrishnakumar/react-native-metrify/tree/main/examples/basic-demo) for complete working examples:
 
-To run the example:
+- **AllWidgetsDashboard.tsx** - All 24 widgets in one scrollable file
+- **KPIExample.tsx** - 7 KPI variations
+- **GaugeExample.tsx** - 6 Gauge variations  
+- **DashboardExample.tsx** - Real-world dashboard
+- **API_REFERENCE.md** - Complete type reference
 
-```bash
-cd examples/expo-template
-npm install
-npm start
-```
+Copy any example directly into your app and start using it!
 
 ---
 
