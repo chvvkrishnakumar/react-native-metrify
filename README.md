@@ -3,6 +3,26 @@
 > Mobile-first SVG chart library for React Native, Expo, and React Native Web
 
 [![npm version](https://img.shields.io/npm/v/react-native-metrify.svg)](https://www.npmjs.com/package/react-native-metrify)
+
+## ⚠️ Alpha Release
+
+**This package is in early alpha.** The core functionality works, but the library is under active development.
+
+- ✅ 24 chart types implemented and working
+- ✅ TypeScript support with full type definitions
+- ✅ Responsive font sizing
+- ⚠️ Limited testing coverage
+- ⚠️ APIs may change in future versions
+- 🚧 Examples and demos coming soon
+
+**Installation:**
+```bash
+npm install react-native-metrify@alpha
+# or
+yarn add react-native-metrify@alpha
+```
+
+Feedback and contributions welcome!
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive, performance-focused chart library built specifically for React Native. Features 24+ chart types, SVG-based rendering, theme support, and smooth animations.
@@ -21,7 +41,7 @@ A comprehensive, performance-focused chart library built specifically for React 
 ## 📦 Installation
 
 ```bash
-npm install react-native-metrify
+npm install react-native-metrify@alpha
 ```
 
 ### Peer Dependencies
