@@ -1,6 +1,6 @@
 {
   "name": "react-native-metrify",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Mobile-first SVG chart library for React Native, Expo, and React Native Web",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -14,7 +14,6 @@
   },
   "files": [
     "dist",
-    "src",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"
