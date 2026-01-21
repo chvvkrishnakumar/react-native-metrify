@@ -1,0 +1,70 @@
+# Source files (included via package.json files field)
+# src/
+
+# Examples and demos
+examples/
+apps/
+
+# Development files
+.github/
+.vscode/
+.idea/
+
+# Build artifacts (old)
+*.log
+*.tgz
+
+# Tests
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+__tests__/
+__mocks__/
+
+# Config files
+.eslintrc*
+.prettierrc*
+tsconfig.json
+tsconfig.*.json
+!tsconfig.build.json
+
+# Documentation (keep only essential ones)
+PROJECT_SUMMARY.md
+FINAL_STATUS.md
+PATH_MAPPING_FIX.md
+DESIGN_DECISIONS.md
+SETUP_COMPLETE.md
+FINAL_WIDGET_COUNT.md
+COMPLETE_WIDGET_LIST.md
+EXPO_GO_LIMITATIONS.md
+MONOREPO_SETUP.md
+UI_COMPONENTS_GUIDE.md
+QUICK_START.md
+VERSIONING.md
+
+# Template specific files
+app.json
+babel.config.js
+metro.config.js
+tailwind.config.js
+global.css
+nativewind-env.d.ts
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Editor
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Workspace
+node_modules/
+packages/

@@ -1,0 +1,13 @@
+{
+  "name": "@dashboard-widgets/core",
+  "version": "0.1.0",
+  "description": "Core utilities for dashboard widgets - math, theme, animation, layout",
+  "main": "index.ts",
+  "types": "index.ts",
+  "private": true,
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.70.0",
+    "react-native-reanimated": ">=3.0.0"
+  }
+}

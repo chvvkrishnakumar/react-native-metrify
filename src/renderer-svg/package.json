@@ -1,0 +1,17 @@
+{
+  "name": "@dashboard-widgets/renderer-svg",
+  "version": "0.1.0",
+  "description": "SVG renderer for dashboard widgets - primitives, paths, adapters",
+  "main": "index.ts",
+  "types": "index.ts",
+  "private": true,
+  "dependencies": {
+    "@dashboard-widgets/core": "*"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.70.0",
+    "react-native-svg": ">=13.0.0",
+    "react-native-reanimated": ">=3.0.0"
+  }
+}
