@@ -70,21 +70,42 @@ docs/images/widgets/
 ### LineChart
 ```tsx
 <LineChart
-  data={[45, 62, 58, 78, 72, 85, 92, 88, 95]}
-  labels={['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']}
+  data={{
+    series: [{
+      data: [
+        { x: 0, y: 45 },
+        { x: 1, y: 62 },
+        { x: 2, y: 58 },
+        { x: 3, y: 78 },
+        { x: 4, y: 72 },
+        { x: 5, y: 85 },
+        { x: 6, y: 92 },
+        { x: 7, y: 88 },
+        { x: 8, y: 95 },
+      ],
+      color: "#007AFF",
+      label: "Sales",
+    }],
+  }}
   width={400}
   height={250}
-  curved={true}
-  showGrid={true}
-  showPoints={true}
 />
 ```
 
 ### BarChart
 ```tsx
 <BarChart
-  data={[65, 78, 85, 92, 58, 73, 88]}
-  labels={['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']}
+  data={{
+    data: [
+      { label: "Mon", value: 65 },
+      { label: "Tue", value: 78 },
+      { label: "Wed", value: 85 },
+      { label: "Thu", value: 92 },
+      { label: "Fri", value: 58 },
+      { label: "Sat", value: 73 },
+      { label: "Sun", value: 88 },
+    ],
+  }}
   width={400}
   height={250}
 />
@@ -93,8 +114,22 @@ docs/images/widgets/
 ### AreaChart
 ```tsx
 <AreaChart
-  data={[30, 45, 42, 58, 65, 72, 68, 75]}
-  labels={['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4']}
+  data={{
+    series: [{
+      data: [
+        { x: 0, y: 30 },
+        { x: 1, y: 45 },
+        { x: 2, y: 42 },
+        { x: 3, y: 58 },
+        { x: 4, y: 65 },
+        { x: 5, y: 72 },
+        { x: 6, y: 68 },
+        { x: 7, y: 75 },
+      ],
+      color: "#34C759",
+      label: "Revenue",
+    }],
+  }}
   width={400}
   height={250}
 />
@@ -103,12 +138,14 @@ docs/images/widgets/
 ### PieChart
 ```tsx
 <PieChart
-  data={[
-    { value: 35, label: 'Product A' },
-    { value: 25, label: 'Product B' },
-    { value: 20, label: 'Product C' },
-    { value: 20, label: 'Product D' }
-  ]}
+  data={{
+    segments: [
+      { value: 35, label: 'Product A', color: '#007AFF' },
+      { value: 25, label: 'Product B', color: '#34C759' },
+      { value: 20, label: 'Product C', color: '#FF9500' },
+      { value: 20, label: 'Product D', color: '#FF3B30' },
+    ],
+  }}
   width={300}
   height={300}
 />
@@ -117,7 +154,10 @@ docs/images/widgets/
 ### Sparkline
 ```tsx
 <Sparkline
-  data={[15, 25, 18, 32, 28, 35, 42, 38, 45, 52, 48, 55]}
+  data={{
+    data: [15, 25, 18, 32, 28, 35, 42, 38, 45, 52, 48, 55],
+    label: "Trend",
+  }}
   width={200}
   height={60}
 />
@@ -126,7 +166,10 @@ docs/images/widgets/
 ### Progress
 ```tsx
 <Progress
-  value={65}
+  data={{
+    value: 65,
+    max: 100,
+  }}
   width={300}
   height={30}
 />

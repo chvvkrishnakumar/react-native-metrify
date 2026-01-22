@@ -269,12 +269,14 @@ interface BaseWidgetProps {
 
 ```tsx
 <KPI
-  value={1234}
-  label="Revenue"
-  trend={12.5}            // Percentage change
-  format="currency"       // 'number' | 'currency' | 'percentage'
-  currency="USD"          // Currency code for formatting
-  precision={2}           // Decimal places
+  data={{
+    value: 1234,
+    label: "Revenue",
+    trend: 12.5,          // Percentage change
+    format: "currency",   // 'number' | 'currency' | 'percentage'
+    currency: "USD",      // Currency code for formatting
+    precision: 2,         // Decimal places
+  }}
   width={200}
 />
 ```
@@ -283,13 +285,23 @@ interface BaseWidgetProps {
 
 ```tsx
 <LineChart
-  data={[10, 25, 15, 40, 30]}
-  labels={['Jan', 'Feb', 'Mar', 'Apr', 'May']}
+  data={{
+    series: [
+      {
+        data: [
+          { x: 0, y: 10 },
+          { x: 1, y: 25 },
+          { x: 2, y: 15 },
+          { x: 3, y: 40 },
+          { x: 4, y: 30 },
+        ],
+        color: "#007AFF",
+        label: "Sales",
+      },
+    ],
+  }}
   width={300}
   height={200}
-  curved={true}           // Use curved lines
-  showGrid={true}         // Show background grid
-  showPoints={true}       // Show data points
 />
 ```
 
@@ -297,14 +309,18 @@ interface BaseWidgetProps {
 
 ```tsx
 <Gauge
-  value={75}
-  min={0}
-  max={100}
+  data={{
+    value: 75,
+    max: 100,
+    label: "Progress",
+    unit: "%",
+  }}
   width={200}
   height={200}
-  variant="semi"          // 'full' | 'semi'
+  startAngle={-120}       // Start angle in degrees
+  endAngle={120}          // End angle in degrees
   showValue={true}
-  unit="%"
+  showLabel={true}
 />
 ```
 

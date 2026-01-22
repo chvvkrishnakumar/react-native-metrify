@@ -48,3 +48,5 @@ yarn-error.*
 
 expo-env.d.ts
 # @end expo-cli sync
+
+.expo_backup/

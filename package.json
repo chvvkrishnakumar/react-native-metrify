@@ -26,8 +26,7 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
     "dev": "tsc --project tsconfig.build.json --watch",
-    "pack:test": "npm pack --dry-run",
-    "example": "cd examples/expo-template && npm start"
+    "pack:test": "npm pack --dry-run"
   },
   "keywords": [
     "react-native",
