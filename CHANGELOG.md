@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0-alpha.3] - 2026-01-22
+
+### Fixed
+- Corrected documentation examples to match actual API implementation
+- Fixed KPI, Gauge, LineChart, BarChart, PieChart, AreaChart, Sparkline, and Progress widget examples
+- All widget examples now correctly show `data={{}}` prop pattern instead of flat props
+- Removed invalid `expo-template` reference from package.json scripts
+
 ## [0.1.0] - 2026-01-21
 
 ### Added
