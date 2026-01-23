@@ -10,28 +10,39 @@ import {
   normalize,
 } from '../../core';
 import { Text } from '../../renderer-svg/primitives';
-import { BarChartWidgetProps } from './types';
+import { BarChartData, BarChartLegacyProps, BarChartSimpleProps, BarChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToBarData } from '../../core/utils/dataTransform';
 
 /**
  * BarChart Widget Component
  */
-export const BarChart = memo<BarChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  orientation = 'vertical',
-  barWidth: customBarWidth,
-  barSpacing = 8,
-  showValues = true,
-  showLabels = true,
-  minBarHeight = 4,
-  maxBars = 20,
-  testID,
-}) => {
+export const BarChart = memo<BarChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    orientation = 'vertical',
+    barWidth: customBarWidth,
+    barSpacing = 8,
+    showValues = true,
+    showLabels = true,
+    minBarHeight = 4,
+    maxBars = 20,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 300, 200);
+
+  // Transform data if using simple API
+  const widgetData: BarChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'xKey' in props || 'dataKeys' in props || 'labelKey' in props || 'valueKey' in props || 'categoryKey' in props || 'dateKey' in props) {
+      const simpleProps = props as BarChartSimpleProps;
+      return transformToBarData(simpleProps.data, simpleProps.xKey, simpleProps.dataKey, simpleProps.colors);
+    }
+    return (props as BarChartLegacyProps).data || null;
+  }, [props]);
 
   // Handle states
   if (loading) {

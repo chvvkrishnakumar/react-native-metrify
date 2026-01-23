@@ -13,7 +13,8 @@ export interface KPIData {
   format?: KPIFormat;
 }
 
-export interface KPIWidgetProps extends BaseWidgetProps<KPIData> {
+// Note: KPI uses single value, Simple API not applicable
+export type KPIWidgetProps = BaseWidgetProps<KPIData> & {
   showTrend?: boolean;
   showDelta?: boolean;
-}
+};

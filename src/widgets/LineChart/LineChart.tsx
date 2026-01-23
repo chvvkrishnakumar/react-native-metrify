@@ -3,7 +3,7 @@
  */
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
-import Svg, { Line as SvgLine } from 'react-native-svg';
+import Svg, { Line as SvgLine, Defs, LinearGradient, Stop } from 'react-native-svg';
 import {
   useWidgetDimensions,
   useWidgetTheme,
@@ -13,31 +13,50 @@ import {
 } from '../../core';
 import {
   createLinePath,
+  createAreaPath,
   AnimatedPath,
   Text,
 } from '../../renderer-svg';
-import { LineChartWidgetProps } from './types';
+import { LineChartData, LineChartLegacyProps, LineChartSimpleProps, LineChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToSeriesData } from '../../core/utils/dataTransform';
 
 /**
  * LineChart Widget Component
  */
-export const LineChart = memo<LineChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showXAxis = true,
-  showYAxis = true,
-  showGrid = true,
-  showLegend = true,
-  maxXLabels = 6,
-  maxYLabels = 5,
-  curveType = 'linear',
-  testID,
-}) => {
+export const LineChart = memo<LineChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showXAxis = true,
+    showYAxis = true,
+    showGrid = true,
+    showLegend = true,
+    filled = false,
+    showGradient = true,
+    maxXLabels = 6,
+    maxYLabels = 5,
+    curveType = 'linear',
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 250);
+
+  // Transform data if using simple API
+  const widgetData: LineChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'xKey' in props || 'dataKeys' in props || 'labelKey' in props || 'valueKey' in props || 'categoryKey' in props || 'dateKey' in props) {
+      const simpleProps = props as LineChartSimpleProps;
+      return transformToSeriesData(simpleProps.data, {
+        xKey: simpleProps.xKey,
+        dataKeys: simpleProps.dataKeys,
+        colors: simpleProps.colors,
+        labels: simpleProps.labels,
+      });
+    }
+    return (props as LineChartLegacyProps).data || null;
+  }, [props]);
 
   // Handle states
   if (loading) {
@@ -104,9 +123,15 @@ export const LineChart = memo<LineChartWidgetProps>(({
       s.data.forEach(point => {
         if (point.y < minY) minY = point.y;
         if (point.y > maxY) maxY = point.y;
-        allXValues.push(point.x);
       });
     });
+
+    // Collect X values only from the first series (all series share same X-axis)
+    if (series.length > 0) {
+      series[0].data.forEach(point => {
+        allXValues.push(point.x);
+      });
+    }
 
     // Generate X-axis labels
     const labels = allXValues.map((x, idx) => {
@@ -148,14 +173,18 @@ export const LineChart = memo<LineChartWidgetProps>(({
         return { x, y };
       });
 
+      const linePath = createLinePath(points);
+      const areaPath = filled ? createAreaPath(points, chartHeight) : '';
+
       return {
-        path: createLinePath(points),
+        linePath,
+        areaPath,
         color: s.color,
         strokeWidth: s.strokeWidth || 2,
         label: s.label,
       };
     });
-  }, [series, chartWidth, chartHeight, globalMinY, globalMaxY]);
+  }, [series, chartWidth, chartHeight, globalMinY, globalMaxY, filled]);
 
   return (
     <View
@@ -214,6 +243,25 @@ export const LineChart = memo<LineChartWidgetProps>(({
         {/* Chart SVG */}
         <View>
           <Svg width={chartWidth} height={chartHeight}>
+            {/* Gradients for filled areas */}
+            {filled && showGradient && (
+              <Defs>
+                {seriesPaths.map((series, index) => (
+                  <LinearGradient
+                    key={`gradient-${index}`}
+                    id={`gradient-${index}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <Stop offset="0%" stopColor={series.color} stopOpacity="0.8" />
+                    <Stop offset="100%" stopColor={series.color} stopOpacity="0.1" />
+                  </LinearGradient>
+                ))}
+              </Defs>
+            )}
+
             {/* Grid lines */}
             {showGrid && yAxisLabels.map((label, index) => (
               <SvgLine
@@ -227,11 +275,22 @@ export const LineChart = memo<LineChartWidgetProps>(({
               />
             ))}
 
-            {/* Line series */}
+            {/* Area fills (render first, behind lines) */}
+            {filled && seriesPaths.map((series, index) => (
+              <AnimatedPath
+                key={`area-${index}`}
+                d={series.areaPath}
+                fill={showGradient ? `url(#gradient-${index})` : series.color}
+                opacity={showGradient ? 1 : 0.3}
+                stroke="transparent"
+              />
+            ))}
+
+            {/* Line series (render on top of areas) */}
             {seriesPaths.map((series, index) => (
               <AnimatedPath
-                key={`series-${index}`}
-                d={series.path}
+                key={`line-${index}`}
+                d={series.linePath}
                 stroke={series.color}
                 strokeWidth={series.strokeWidth}
                 strokeLinecap="round"

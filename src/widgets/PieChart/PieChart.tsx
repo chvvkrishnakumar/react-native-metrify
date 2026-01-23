@@ -9,27 +9,39 @@ import {
   useWidgetTheme,
 } from '../../core';
 import { createDonutArcPath, createFilledArcPath } from '../../renderer-svg';
-import { PieChartWidgetProps } from './types';
+import { PieChartData, PieChartLegacyProps, PieChartSimpleProps, PieChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToPieData } from '../../core/utils/dataTransform';
 
 /**
  * PieChart Widget Component
  */
-export const PieChart = memo<PieChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  variant = 'pie',
-  innerRadius = 0.5,
-  showLabels = true,
-  showValues = false,
-  showPercentages = true,
-  size: customSize,
-  testID,
-}) => {
+export const PieChart = memo<PieChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    variant = 'pie',
+    innerRadius = 0.5,
+    showLabels = true,
+    showValues = false,
+    showPercentages = true,
+    size: customSize,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 300, 300);
+
+  // Transform data if using simple API
+  const widgetData: PieChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'labelKey' in props && 'valueKey' in props) {
+      const simpleProps = props as PieChartSimpleProps;
+      const transformed = transformToPieData(simpleProps.data, simpleProps.labelKey, simpleProps.valueKey, simpleProps.colors);
+      return { segments: transformed.data };
+    }
+    return (props as PieChartLegacyProps).data || null;
+  }, [props]);
 
   // Handle states
   if (loading) {

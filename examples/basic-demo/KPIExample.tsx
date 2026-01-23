@@ -35,7 +35,6 @@ export default function KPIExample() {
               delta: 15.3,
               trend: 'up',
               format: 'currency',
-              currency: 'USD',
             }}
             width={300}
             height={120}

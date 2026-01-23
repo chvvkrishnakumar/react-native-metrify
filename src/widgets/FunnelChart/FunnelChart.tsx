@@ -5,22 +5,33 @@ import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Polygon } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
-import { FunnelChartWidgetProps } from './types';
+import { FunnelChartData, FunnelChartLegacyProps, FunnelChartSimpleProps, FunnelChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToFunnelData } from '../../core/utils/dataTransform';
 
-export const FunnelChart = memo<FunnelChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showLabels = true,
-  showValues = true,
-  showPercentages = true,
-  stageSpacing = 8,
-  testID,
-}) => {
+export const FunnelChart = memo<FunnelChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showLabels = true,
+    showValues = true,
+    showPercentages = true,
+    stageSpacing = 8,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 300, 400);
+
+  // Transform data if using simple API
+  const widgetData: FunnelChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'xKey' in props || 'dataKeys' in props || 'labelKey' in props || 'valueKey' in props || 'categoryKey' in props || 'dateKey' in props) {
+      const simpleProps = props as FunnelChartSimpleProps;
+      return transformToFunnelData(simpleProps.data, simpleProps.labelKey, simpleProps.valueKey, simpleProps.colors);
+    }
+    return (props as FunnelChartLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

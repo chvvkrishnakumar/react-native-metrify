@@ -6,7 +6,8 @@ import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, polarToCartesian } from '../../core';
 import { createDonutArcPath } from '../../renderer-svg';
-import { SunburstChartWidgetProps, SunburstNode } from './types';
+import { SunburstChartWidgetProps, SunburstNode, SunburstChartData, SunburstChartLegacyProps, SunburstChartSimpleProps } from './types';
+import { isSimpleDataFormat, transformToSunburstData } from '../../core/utils/dataTransform';
 
 interface SunburstSegment {
   path: string;
@@ -82,19 +83,35 @@ function calculateSunburst(
   return segments;
 }
 
-export const SunburstChart = memo<SunburstChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showLabels = false,
-  size: customSize,
-  innerRadius = 30,
-  testID,
-}) => {
+export const SunburstChart = memo<SunburstChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showLabels = false,
+    size: customSize,
+    innerRadius = 30,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 350);
+
+  // Transform data if using simple API
+  const widgetData: SunburstChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'labelKey' in props && 'valueKey' in props) {
+      const simpleProps = props as SunburstChartSimpleProps;
+      return transformToSunburstData(
+        simpleProps.data,
+        simpleProps.labelKey,
+        simpleProps.valueKey,
+        simpleProps.parentKey,
+        simpleProps.colors
+      );
+    }
+    return (props as SunburstChartLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

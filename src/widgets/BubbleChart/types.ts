@@ -23,11 +23,49 @@ export interface BubbleChartData {
   yAxisLabel?: string;
 }
 
-export interface BubbleChartWidgetProps extends BaseWidgetProps<BubbleChartData> {
+// Simple API
+export interface BubbleChartSimpleProps {
+  /** Array of data objects */
+  data: Record<string, any>[];
+  /** Key for X-axis values */
+  xKey: string;
+  /** Key for Y-axis values */
+  yKey: string;
+  /** Key for bubble size */
+  sizeKey: string;
+  /** Optional key for point labels */
+  labelKey?: string;
+  /** Colors for each bubble (optional) */
+  colors?: string[];
   showXAxis?: boolean;
   showYAxis?: boolean;
   showGrid?: boolean;
   showLegend?: boolean;
   minBubbleSize?: number;
   maxBubbleSize?: number;
+  width?: number;
+  height?: number;
+  loading?: boolean;
+  theme?: any;
+  testID?: string;
 }
+
+// Legacy API
+export interface BubbleChartLegacyProps {
+  data: BubbleChartData;
+  xKey?: never;
+  yKey?: never;
+  width?: number;
+  height?: number;
+  loading?: boolean;
+  theme?: any;
+  showXAxis?: boolean;
+  showYAxis?: boolean;
+  showGrid?: boolean;
+  showLegend?: boolean;
+  minBubbleSize?: number;
+  maxBubbleSize?: number;
+  testID?: string;
+}
+
+export type BubbleChartWidgetProps = BubbleChartSimpleProps | BubbleChartLegacyProps;

@@ -5,26 +5,39 @@ import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Line as SvgLine } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize, formatTimeLabel, reduceLabels } from '../../core';
-import { CandlestickChartWidgetProps } from './types';
+import { CandlestickChartData, CandlestickChartLegacyProps, CandlestickChartSimpleProps, CandlestickChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToCandlestickData } from '../../core/utils/dataTransform';
 
-export const CandlestickChart = memo<CandlestickChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showXAxis = true,
-  showYAxis = true,
-  showGrid = true,
-  candleWidth = 8,
-  candleSpacing = 4,
-  upColor,
-  downColor,
-  maxCandles = 30,
-  testID,
-}) => {
+export const CandlestickChart = memo<CandlestickChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showXAxis = true,
+    showYAxis = true,
+    showGrid = true,
+    candleWidth = 8,
+    candleSpacing = 4,
+    upColor,
+    downColor,
+    maxCandles = 30,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 300);
+
+  // Transform data if using simple API
+  const widgetData: CandlestickChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'dateKey' in props && 'openKey' in props) {
+      const simpleProps = props as CandlestickChartSimpleProps;
+      return transformToCandlestickData(
+        simpleProps.data, simpleProps.dateKey, simpleProps.openKey, simpleProps.highKey, simpleProps.lowKey, simpleProps.closeKey
+      );
+    }
+    return (props as CandlestickChartLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

@@ -5,23 +5,36 @@ import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Circle, Line as SvgLine } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
-import { ScatterPlotWidgetProps } from './types';
+import { ScatterPlotData, ScatterPlotLegacyProps, ScatterPlotSimpleProps, ScatterPlotWidgetProps } from './types';
+import { isSimpleDataFormat, transformToScatterData } from '../../core/utils/dataTransform';
 
-export const ScatterPlot = memo<ScatterPlotWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showXAxis = true,
-  showYAxis = true,
-  showGrid = true,
-  showLegend = true,
-  defaultPointSize = 6,
-  testID,
-}) => {
+export const ScatterPlot = memo<ScatterPlotWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showXAxis = true,
+    showYAxis = true,
+    showGrid = true,
+    showLegend = true,
+    defaultPointSize = 6,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 250);
+
+  // Transform data if using simple API
+  const widgetData: ScatterPlotData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'xKey' in props && 'yKey' in props) {
+      const simpleProps = props as ScatterPlotSimpleProps;
+      const labels = simpleProps.labelKey ? simpleProps.data.map((item: any) => String(item[simpleProps.labelKey!])) : undefined;
+      const transformed = transformToScatterData(simpleProps.data, simpleProps.xKey, simpleProps.yKey, undefined, simpleProps.colors, labels);
+      return { series: [{ data: transformed.data, color: transformed.data[0]?.color || '#8884d8' }] };
+    }
+    return (props as ScatterPlotLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (
@@ -71,6 +84,15 @@ export const ScatterPlot = memo<ScatterPlotWidgetProps>(({
     }));
   }, [globalMinY, globalMaxY, chartHeight]);
 
+  const xAxisLabels = useMemo(() => {
+    const range = globalMaxX - globalMinX;
+    const step = range / 4;
+    return Array.from({ length: 5 }, (_, i) => ({
+      value: globalMinX + i * step,
+      x: (i * chartWidth) / 4,
+    }));
+  }, [globalMinX, globalMaxX, chartWidth]);
+
   const seriesPoints = useMemo(() => {
     return series.map(s => {
       const points = s.data.map(point => {
@@ -114,7 +136,10 @@ export const ScatterPlot = memo<ScatterPlotWidgetProps>(({
         <View>
           <Svg width={chartWidth} height={chartHeight}>
             {showGrid && yAxisLabels.map((label, index) => (
-              <SvgLine key={`grid-${index}`} x1={0} y1={label.y} x2={chartWidth} y2={label.y} stroke={theme.colors.borderLight} strokeWidth={1} />
+              <SvgLine key={`grid-y-${index}`} x1={0} y1={label.y} x2={chartWidth} y2={label.y} stroke={theme.colors.borderLight} strokeWidth={1} />
+            ))}
+            {showGrid && xAxisLabels.map((label, index) => (
+              <SvgLine key={`grid-x-${index}`} x1={label.x} y1={0} x2={label.x} y2={chartHeight} stroke={theme.colors.borderLight} strokeWidth={1} />
             ))}
 
             {seriesPoints.map((series, seriesIndex) => (
@@ -125,13 +150,23 @@ export const ScatterPlot = memo<ScatterPlotWidgetProps>(({
                   cy={point.cy}
                   r={series.pointSize}
                   fill={series.color}
-                  opacity={0.8}
+                  opacity={1}
                 />
               ))
             ))}
           </Svg>
         </View>
       </View>
+
+      {showXAxis && (
+        <View style={[styles.xAxis, { marginLeft: yAxisWidth }]}>
+          {xAxisLabels.map((label, index) => (
+            <RNText key={`x-${index}`} style={[styles.xAxisLabel, { color: theme.colors.textSecondary, fontSize: theme.fontScale.xs, left: label.x - 15 }]}>
+              {label.value.toFixed(0)}
+            </RNText>
+          ))}
+        </View>
+      )}
 
       {showLegend && (
         <View style={styles.legend}>
@@ -160,6 +195,8 @@ const styles = StyleSheet.create({
   chartRow: { flexDirection: 'row', alignItems: 'flex-start' },
   yAxis: { position: 'relative', marginRight: 8 },
   yAxisLabel: { position: 'absolute', right: 0, textAlign: 'right' },
+  xAxis: { position: 'relative', height: 30, flexDirection: 'row', marginTop: 4 },
+  xAxisLabel: { position: 'absolute', textAlign: 'center', width: 30 },
   legend: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 12, gap: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendColor: { width: 12, height: 12, borderRadius: 6 },

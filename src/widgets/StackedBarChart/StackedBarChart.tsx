@@ -5,24 +5,36 @@ import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
-import { StackedBarChartWidgetProps } from './types';
+import { StackedBarChartData, StackedBarChartLegacyProps, StackedBarChartSimpleProps, StackedBarChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToStackedBarData } from '../../core/utils/dataTransform';
 
-export const StackedBarChart = memo<StackedBarChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  barWidth: customBarWidth,
-  barSpacing = 8,
-  showValues = false,
-  showLabels = true,
-  showLegend = true,
-  maxBars = 12,
-  testID,
-}) => {
+export const StackedBarChart = memo<StackedBarChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    barWidth: customBarWidth,
+    barSpacing = 8,
+    showValues = false,
+    showLabels = true,
+    showLegend = true,
+    maxBars = 12,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 250);
+
+  // Transform data if using simple API
+  const widgetData: StackedBarChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'categoryKey' in props && 'dataKeys' in props) {
+      const simpleProps = props as StackedBarChartSimpleProps;
+      const transformed = transformToStackedBarData(simpleProps.data, simpleProps.categoryKey, simpleProps.dataKeys, simpleProps.colors, simpleProps.labels);
+      return { data: transformed.stacks.map(s => ({ label: s.category, segments: s.segments })) };
+    }
+    return (props as StackedBarChartLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

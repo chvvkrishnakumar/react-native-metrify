@@ -14,10 +14,43 @@ export interface HorizontalBarChartData {
   title?: string;
 }
 
-export interface HorizontalBarChartWidgetProps extends BaseWidgetProps<HorizontalBarChartData> {
+// Simple API
+export interface HorizontalBarChartSimpleProps {
+  /** Array of data objects */
+  data: Record<string, any>[];
+  /** Key for labels (Y-axis) */
+  labelKey: string;
+  /** Key for values (X-axis) */
+  dataKey: string;
+  /** Colors for each bar (optional) */
+  colors?: string[];
   barHeight?: number;
   barSpacing?: number;
   showValues?: boolean;
   showLabels?: boolean;
   maxBars?: number;
+  width?: number;
+  height?: number;
+  loading?: boolean;
+  theme?: any;
+  testID?: string;
 }
+
+// Legacy API
+export interface HorizontalBarChartLegacyProps {
+  data: HorizontalBarChartData;
+  labelKey?: never;
+  dataKey?: never;
+  width?: number;
+  height?: number;
+  loading?: boolean;
+  theme?: any;
+  barHeight?: number;
+  barSpacing?: number;
+  showValues?: boolean;
+  showLabels?: boolean;
+  maxBars?: number;
+  testID?: string;
+}
+
+export type HorizontalBarChartWidgetProps = HorizontalBarChartSimpleProps | HorizontalBarChartLegacyProps;

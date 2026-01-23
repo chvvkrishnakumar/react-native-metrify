@@ -5,23 +5,34 @@ import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
-import { HorizontalBarChartWidgetProps } from './types';
+import { HorizontalBarChartData, HorizontalBarChartLegacyProps, HorizontalBarChartSimpleProps, HorizontalBarChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToBarData } from '../../core/utils/dataTransform';
 
-export const HorizontalBarChart = memo<HorizontalBarChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  barHeight = 24,
-  barSpacing = 12,
-  showValues = true,
-  showLabels = true,
-  maxBars = 15,
-  testID,
-}) => {
+export const HorizontalBarChart = memo<HorizontalBarChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    barHeight = 24,
+    barSpacing = 12,
+    showValues = true,
+    showLabels = true,
+    maxBars = 15,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 300);
+
+  // Transform data if using simple API
+  const widgetData: HorizontalBarChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'xKey' in props || 'dataKeys' in props || 'labelKey' in props || 'valueKey' in props || 'categoryKey' in props || 'dateKey' in props) {
+      const simpleProps = props as HorizontalBarChartSimpleProps;
+      return transformToBarData(simpleProps.data, simpleProps.labelKey, simpleProps.dataKey, simpleProps.colors);
+    }
+    return (props as HorizontalBarChartLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

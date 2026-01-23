@@ -5,23 +5,35 @@ import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Line as SvgLine } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
-import { HistogramWidgetProps } from './types';
+import { HistogramData, HistogramLegacyProps, HistogramSimpleProps, HistogramWidgetProps } from './types';
+import { isSimpleDataFormat, transformToHistogramData } from '../../core/utils/dataTransform';
 
-export const Histogram = memo<HistogramWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showXAxis = true,
-  showYAxis = true,
-  showGrid = false,
-  color,
-  barSpacing = 2,
-  testID,
-}) => {
+export const Histogram = memo<HistogramWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showXAxis = true,
+    showYAxis = true,
+    showGrid = false,
+    color,
+    barSpacing = 2,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 250);
+
+  // Transform data if using simple API
+  const widgetData: HistogramData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'valueKey' in props) {
+      const simpleProps = props as HistogramSimpleProps;
+      const transformed = transformToHistogramData(simpleProps.data, simpleProps.valueKey, simpleProps.bins);
+      return { data: transformed.values, binCount: transformed.bins };
+    }
+    return (props as HistogramLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (
