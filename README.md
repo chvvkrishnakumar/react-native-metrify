@@ -80,6 +80,68 @@ export default function App() {
 
 ### 2. Use any chart component
 
+#### Simple API (Recommended)
+
+```tsx
+import { LineChart, AreaChart, BarChart } from 'react-native-metrify';
+import { View } from 'react-native';
+
+// Your data - just a simple array of objects!
+const data = [
+  { name: 'Jan', sales: 4000, expenses: 2400 },
+  { name: 'Feb', sales: 3000, expenses: 1398 },
+  { name: 'Mar', sales: 2000, expenses: 9800 },
+  { name: 'Apr', sales: 2780, expenses: 3908 },
+  { name: 'May', sales: 1890, expenses: 4800 },
+  { name: 'Jun', sales: 2390, expenses: 3800 },
+];
+
+export default function Dashboard() {
+  return (
+    <View>
+      {/* LineChart - Just specify data and keys! */}
+      <LineChart
+        data={data}
+        xKey="name"
+        dataKeys={['sales', 'expenses']}
+        colors={['#82ca9d', '#ff7c7c']}
+        labels={['Sales', 'Expenses']}
+        width={350}
+        height={250}
+        showGrid
+        showLegend
+      />
+
+      {/* LineChart as Area Chart - Just add filled prop! */}
+      <LineChart
+        data={data}
+        xKey="name"
+        dataKeys={['revenue']}
+        colors={['#8884d8']}
+        width={350}
+        height={250}
+        filled={true}        // Makes it an area chart!
+        showGradient={true}  // Beautiful gradient fill
+      />
+
+      {/* BarChart - Single value per item */}
+      <BarChart
+        data={data}
+        xKey="name"
+        dataKey="sales"
+        width={350}
+        height={250}
+        showValues
+      />
+    </View>
+  );
+}
+```
+
+#### Advanced API (Full Control)
+
+For more control, you can still use the original API:
+
 ```tsx
 import { KPI, LineChart, Gauge } from 'react-native-metrify';
 import { View } from 'react-native';
@@ -202,13 +264,111 @@ export default function Dashboard() {
 
 **Bar Charts:** BarChart, HorizontalBarChart, StackedBarChart, GroupedBarChart, WaterfallChart, Histogram
 
-**Line & Area:** LineChart, AreaChart, MultiLineSparkline
+**Line & Area:** LineChart (with area support), MultiLineSparkline, ~~AreaChart~~ (deprecated, use LineChart with `filled={true}`)
 
 **Distribution:** PieChart, FunnelChart, BoxPlot
 
 **Scientific:** ScatterPlot, BubbleChart, Heatmap, RadarChart, CandlestickChart
 
 **Hierarchical:** Treemap, SunburstChart, SankeyDiagram
+
+## 💡 Simple API (Data-Driven)
+
+We've made it super easy to use charts! Inspired by Recharts, you can now pass your data directly without manual transformation.
+
+### Before vs After
+
+**❌ Old Way (Complex):**
+```tsx
+// Had to manually transform your data
+const chartData = {
+  series: [
+    {
+      data: data.map(d => ({ x: d.month, y: d.sales })),
+      color: '#82ca9d',
+      label: 'Sales'
+    },
+    {
+      data: data.map(d => ({ x: d.month, y: d.expenses })),
+      color: '#ff7c7c',
+      label: 'Expenses'
+    }
+  ]
+};
+
+<LineChart data={chartData} width={350} height={250} />
+```
+
+**✅ New Way (Simple):**
+```tsx
+// Just pass your data and specify the keys!
+<LineChart
+  data={data}
+  xKey="month"
+  dataKeys={['sales', 'expenses']}
+  colors={['#82ca9d', '#ff7c7c']}
+  labels={['Sales', 'Expenses']}
+  width={350}
+  height={250}
+/>
+```
+
+### Supported Charts
+
+The Simple API is available for **ALL** chart types:
+
+**Line & Area:** LineChart, AreaChart  
+**Bar Charts:** BarChart, GroupedBarChart, StackedBarChart, HorizontalBarChart  
+**Pie & Distribution:** PieChart, FunnelChart  
+**Scatter:** ScatterPlot, BubbleChart  
+**Multi-Axis:** RadarChart  
+**Statistical:** Heatmap, BoxPlot, Histogram  
+**Financial:** WaterfallChart, CandlestickChart  
+
+### Quick Examples
+
+```tsx
+// LineChart - Multiple series
+<LineChart data={data} xKey="month" dataKeys={['sales', 'expenses']} />
+
+// LineChart as Area Chart - Just add filled prop
+<LineChart data={data} xKey="month" dataKeys={['revenue']} filled={true} showGradient />
+
+// AreaChart still works (deprecated, uses LineChart internally)
+<AreaChart data={data} xKey="month" dataKeys={['revenue']} />
+
+// BarChart - Single value
+<BarChart data={data} xKey="category" dataKey="revenue" />
+
+// PieChart - Segments
+<PieChart data={data} labelKey="category" valueKey="amount" />
+
+// ScatterPlot - X/Y coordinates
+<ScatterPlot data={data} xKey="x" yKey="y" />
+
+// RadarChart - Multi-axis comparison
+<RadarChart data={data} categoryKey="skill" dataKeys={['you', 'teamAvg']} />
+
+// Heatmap - Grid visualization
+<Heatmap data={data} xKey="day" yKey="hour" valueKey="activity" />
+
+// And 15+ more charts!
+```
+
+### Full Documentation
+
+📖 **[Complete Simple API Reference →](./SIMPLE_API_REFERENCE.md)**
+
+See all chart types with detailed examples in `SIMPLE_API_REFERENCE.md`
+
+### Benefits
+
+✓ **60% less code** - No manual data transformation needed  
+✓ **Works with ALL charts** - Consistent API across 20+ chart types  
+✓ **Familiar API** - Similar to Recharts and other popular charting libraries  
+✓ **Backward compatible** - Old API still works perfectly  
+✓ **Automatic colors** - Uses a nice default palette if you don't specify colors  
+✓ **TypeScript support** - Full type safety with autocomplete
 
 ## 🎨 Theming
 
@@ -283,7 +443,30 @@ interface BaseWidgetProps {
 
 ### LineChart Component
 
+**New in v0.1.0-beta.1:** LineChart now supports area charts with the `filled` prop!
+
 ```tsx
+// Regular Line Chart
+<LineChart
+  data={data}
+  xKey="month"
+  dataKeys={['sales', 'expenses']}
+  width={350}
+  height={250}
+/>
+
+// Area Chart (filled line chart)
+<LineChart
+  data={data}
+  xKey="month"
+  dataKeys={['revenue']}
+  width={350}
+  height={250}
+  filled={true}        // Enable area fill
+  showGradient={true}  // Show gradient (optional)
+/>
+
+// Legacy API still works
 <LineChart
   data={{
     series: [

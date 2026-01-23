@@ -1,6 +1,10 @@
 /**
- * Complete Dashboard Example
- * Showcases multiple widgets together
+ * Complete Dashboard Example - Simple API
+ * 
+ * Showcases multiple widgets together using the Simple API
+ * (Recharts-like, data-driven approach)
+ * 
+ * For Legacy API examples, see AllWidgetsDashboard.Legacy.tsx
  */
 import React from "react";
 import { View, ScrollView, StyleSheet, Text } from "react-native";
@@ -102,24 +106,21 @@ export default function DashboardExample() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Weekly Activity</Text>
           <LineChart
-            data={{
-              series: [
-                {
-                  data: [
-                    { x: 0, y: 45 },
-                    { x: 1, y: 62 },
-                    { x: 2, y: 58 },
-                    { x: 3, y: 78 },
-                    { x: 4, y: 72 },
-                    { x: 5, y: 85 },
-                    { x: 6, y: 92 },
-                  ],
-                  color: "#007AFF",
-                },
-              ],
-            }}
+            data={[
+              { day: "Mon", activity: 45 },
+              { day: "Tue", activity: 62 },
+              { day: "Wed", activity: 58 },
+              { day: "Thu", activity: 78 },
+              { day: "Fri", activity: 72 },
+              { day: "Sat", activity: 85 },
+              { day: "Sun", activity: 92 },
+            ]}
+            xKey="day"
+            dataKeys={["activity"]}
+            colors={["#007AFF"]}
             width={340}
             height={200}
+            showGrid
           />
         </View>
 
@@ -127,16 +128,17 @@ export default function DashboardExample() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Monthly Sales</Text>
           <BarChart
-            data={{
-              data: [
-                { value: 65, label: "Jan" },
-                { value: 78, label: "Feb" },
-                { value: 85, label: "Mar" },
-                { value: 92, label: "Apr" },
-                { value: 88, label: "May" },
-                { value: 95, label: "Jun" },
-              ],
-            }}
+            data={[
+              { month: "Jan", sales: 65 },
+              { month: "Feb", sales: 78 },
+              { month: "Mar", sales: 85 },
+              { month: "Apr", sales: 92 },
+              { month: "May", sales: 88 },
+              { month: "Jun", sales: 95 },
+            ]}
+            xKey="month"
+            dataKey="sales"
+            colors={["#007AFF"]}
             width={340}
             height={200}
           />
@@ -189,9 +191,21 @@ export default function DashboardExample() {
             <View style={styles.sparklineItem}>
               <Text style={styles.sparklineLabel}>Visitors</Text>
               <Sparkline
-                data={{
-                  data: [15, 25, 18, 32, 28, 35, 42, 38, 45, 52, 48, 55],
-                }}
+                data={[
+                  { t: 0, value: 15 },
+                  { t: 1, value: 25 },
+                  { t: 2, value: 18 },
+                  { t: 3, value: 32 },
+                  { t: 4, value: 28 },
+                  { t: 5, value: 35 },
+                  { t: 6, value: 42 },
+                  { t: 7, value: 38 },
+                  { t: 8, value: 45 },
+                  { t: 9, value: 52 },
+                  { t: 10, value: 48 },
+                  { t: 11, value: 55 },
+                ]}
+                valueKey="value"
                 width={150}
                 height={40}
               />
@@ -199,9 +213,21 @@ export default function DashboardExample() {
             <View style={styles.sparklineItem}>
               <Text style={styles.sparklineLabel}>Sales</Text>
               <Sparkline
-                data={{
-                  data: [20, 18, 25, 22, 30, 28, 35, 32, 38, 42, 40, 45],
-                }}
+                data={[
+                  { t: 0, value: 20 },
+                  { t: 1, value: 18 },
+                  { t: 2, value: 25 },
+                  { t: 3, value: 22 },
+                  { t: 4, value: 30 },
+                  { t: 5, value: 28 },
+                  { t: 6, value: 35 },
+                  { t: 7, value: 32 },
+                  { t: 8, value: 38 },
+                  { t: 9, value: 42 },
+                  { t: 10, value: 40 },
+                  { t: 11, value: 45 },
+                ]}
+                valueKey="value"
                 width={150}
                 height={40}
               />

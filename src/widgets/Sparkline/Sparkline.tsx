@@ -17,27 +17,37 @@ import {
   AnimatedPath,
   dataToPoints,
 } from '../../renderer-svg';
-import { SparklineWidgetProps } from './types';
+import { SparklineData, SparklineLegacyProps, SparklineSimpleProps, SparklineWidgetProps } from './types';
+import { isSimpleDataFormat, transformToSparklineData } from '../../core/utils/dataTransform';
 
 const MAX_DATA_POINTS = 50;
 
 /**
  * Sparkline Widget Component
  */
-export const Sparkline = memo<SparklineWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  animated = true,
-  style = 'line',
-  strokeWidth = 2,
-  showGradient = false,
-  maxDataPoints = MAX_DATA_POINTS,
-  testID,
-}) => {
+export const Sparkline = memo<SparklineWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    style = 'line',
+    strokeWidth = 2,
+    showGradient = false,
+    maxDataPoints = MAX_DATA_POINTS,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
+
+  // Transform data if using simple API
+  const widgetData: SparklineData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'xKey' in props || 'dataKeys' in props || 'labelKey' in props || 'valueKey' in props || 'categoryKey' in props || 'dateKey' in props) {
+      const simpleProps = props as SparklineSimpleProps;
+      return transformToSparklineData(simpleProps.data, simpleProps.valueKey);
+    }
+    return (props as SparklineLegacyProps).data || null;
+  }, [props]);
   const dimensions = useWidgetDimensions(width, height, 200, 80);
   const padding = useWidgetPadding(theme);
   const innerDimensions = useInnerDimensions(

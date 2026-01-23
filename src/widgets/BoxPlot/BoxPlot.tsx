@@ -5,23 +5,37 @@ import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Line as SvgLine, Circle } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
-import { BoxPlotWidgetProps } from './types';
+import { BoxPlotData, BoxPlotLegacyProps, BoxPlotSimpleProps, BoxPlotWidgetProps } from './types';
+import { isSimpleDataFormat, transformToBoxPlotData } from '../../core/utils/dataTransform';
 
-export const BoxPlot = memo<BoxPlotWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showLabels = true,
-  showOutliers = true,
-  boxWidth = 50,
-  boxSpacing = 30,
-  color,
-  testID,
-}) => {
+export const BoxPlot = memo<BoxPlotWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showLabels = true,
+    showOutliers = true,
+    boxWidth = 50,
+    boxSpacing = 30,
+    color,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 300);
+
+  // Transform data if using simple API
+  const widgetData: BoxPlotData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'labelKey' in props && 'minKey' in props) {
+      const simpleProps = props as BoxPlotSimpleProps;
+      const transformed = transformToBoxPlotData(
+        simpleProps.data, simpleProps.labelKey, simpleProps.minKey, simpleProps.q1Key, simpleProps.medianKey, simpleProps.q3Key, simpleProps.maxKey, simpleProps.colors
+      );
+      return { data: transformed.data };
+    }
+    return (props as BoxPlotLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

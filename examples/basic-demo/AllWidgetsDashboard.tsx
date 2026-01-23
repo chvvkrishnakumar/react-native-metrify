@@ -1,6 +1,12 @@
 /**
- * Complete Dashboard - All 24 Widgets
- * All widgets with correct TypeScript types
+ * All Widgets Dashboard - Simple API Examples
+ * 
+ * This demonstrates the NEW Simple API (v0.1.0-beta.1+)
+ * - Recharts-like data-driven approach
+ * - Just pass raw data arrays and specify keys
+ * - No manual data transformation needed
+ * 
+ * For Legacy API examples, see AllWidgetsDashboard.Legacy.tsx
  */
 import React from "react";
 import { View, ScrollView, StyleSheet, Text } from "react-native";
@@ -13,7 +19,6 @@ import {
 
   // Line & Area Charts
   LineChart,
-  AreaChart,
   MultiLineSparkline,
 
   // Bar Charts
@@ -21,44 +26,66 @@ import {
   HorizontalBarChart,
   StackedBarChart,
   GroupedBarChart,
-  Histogram,
   WaterfallChart,
 
-  // Distribution
+  // Circular Charts
   PieChart,
-  FunnelChart,
-  BoxPlot,
+  RadarChart,
 
-  // Scientific
+  // Scatter & Bubble
   ScatterPlot,
   BubbleChart,
-  Heatmap,
-  RadarChart,
-  CandlestickChart,
 
-  // Hierarchical
+  // Distribution
+  Histogram,
+  BoxPlot,
+
+  // Specialized
+  Heatmap,
+  FunnelChart,
+  CandlestickChart,
+  SankeyDiagram,
   Treemap,
   SunburstChart,
-  SankeyDiagram,
-  ThemeProvider,
 } from "react-native-metrify";
+
+// Sample data
+const salesData = [
+  { month: "Jan", sales: 4000, expenses: 2400, profit: 1600 },
+  { month: "Feb", sales: 3000, expenses: 1398, profit: 1602 },
+  { month: "Mar", sales: 2000, expenses: 9800, profit: -7800 },
+  { month: "Apr", sales: 2780, expenses: 3908, profit: -1128 },
+  { month: "May", sales: 1890, expenses: 4800, profit: -2910 },
+  { month: "Jun", sales: 2390, expenses: 3800, profit: -1410 },
+];
+
+const productData = [
+  { product: "Product A", sales: 350 },
+  { product: "Product B", sales: 250 },
+  { product: "Product C", sales: 400 },
+  { product: "Product D", sales: 200 },
+];
 
 export default function AllWidgetsDashboard() {
   return (
-    <ThemeProvider>
-      <ScrollView style={styles.container}>
-        <Text style={styles.mainHeader}>All 24 Widgets Showcase</Text>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>All Widgets - Simple API</Text>
+        <Text style={styles.subtitle}>25 Widgets | v0.1.0-beta.1 | Recharts-like API</Text>
+      </View>
 
-        {/* ========== CORE WIDGETS (4) ========== */}
-        <Text style={styles.sectionHeader}>Core Widgets</Text>
+      {/* Core Widgets */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Core Widgets</Text>
 
-        {/* 1-2. KPI */}
-        <View style={styles.kpiGrid}>
-          <View style={styles.kpiCard}>
+        <View style={styles.row}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>1. KPI</Text>
+            <Text style={styles.note}>Note: Uses Legacy API</Text>
             <KPI
               data={{
-                value: 12450,
-                label: "Revenue",
+                value: 1234,
+                label: "Total Revenue",
                 delta: 15.3,
                 trend: "up",
                 format: "currency",
@@ -67,13 +94,16 @@ export default function AllWidgetsDashboard() {
               height={100}
             />
           </View>
-          <View style={styles.kpiCard}>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>2. KPI (Percent)</Text>
+            <Text style={styles.note}>Note: Uses Legacy API</Text>
             <KPI
               data={{
                 value: 87.5,
-                label: "Success",
-                delta: 2.3,
-                trend: "up",
+                label: "Completion",
+                delta: -2.1,
+                trend: "down",
                 format: "percent",
               }}
               width={160}
@@ -82,9 +112,9 @@ export default function AllWidgetsDashboard() {
           </View>
         </View>
 
-        {/* 3. Gauge */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>3. Gauge</Text>
+          <Text style={styles.note}>Note: Uses Legacy API</Text>
           <View style={styles.centered}>
             <Gauge
               data={{
@@ -95,526 +125,422 @@ export default function AllWidgetsDashboard() {
               }}
               width={200}
               height={180}
-              startAngle={-120}
-              endAngle={120}
             />
           </View>
         </View>
 
-        {/* 4. Progress */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>4. Progress</Text>
+          <Text style={styles.note}>Note: Uses Legacy API</Text>
           <Progress
             data={{
               value: 65,
               max: 100,
-              label: "Tasks Complete",
+              label: "Task Completion",
+              showPercentage: true,
             }}
-            width={320}
-            height={30}
+            width={340}
+            height={40}
           />
         </View>
 
-        {/* 5. Sparkline */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>5. Sparkline</Text>
-          <View style={styles.centered}>
-            <Sparkline
-              data={{
-                data: [15, 25, 18, 32, 28, 35, 42, 38, 45, 52, 48, 55],
-                label: "Trend",
-              }}
-              width={300}
-              height={60}
-            />
-          </View>
+          <Sparkline
+            data={[
+              { time: 0, value: 20 },
+              { time: 1, value: 35 },
+              { time: 2, value: 28 },
+              { time: 3, value: 42 },
+              { time: 4, value: 38 },
+              { time: 5, value: 45 },
+            ]}
+            valueKey="value"
+            width={340}
+            height={60}
+          />
         </View>
+      </View>
 
-        {/* ========== LINE & AREA CHARTS (3) ========== */}
-        <Text style={styles.sectionHeader}>Line & Area Charts</Text>
+      {/* Line & Area Charts */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Line & Area Charts</Text>
 
-        {/* 6. LineChart */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>6. LineChart</Text>
+          <Text style={styles.cardTitle}>6. LineChart - Multiple Series</Text>
           <LineChart
-            data={{
-              series: [
-                {
-                  data: [
-                    { x: 0, y: 45 },
-                    { x: 1, y: 62 },
-                    { x: 2, y: 58 },
-                    { x: 3, y: 78 },
-                    { x: 4, y: 72 },
-                    { x: 5, y: 85 },
-                    { x: 6, y: 92 },
-                  ],
-                  color: "#007AFF",
-                  label: "Sales",
-                },
-              ],
-            }}
+            data={salesData}
+            xKey="month"
+            dataKeys={["sales", "expenses"]}
+            colors={["#007AFF", "#FF3B30"]}
+            labels={["Sales", "Expenses"]}
             width={340}
             height={200}
+            showGrid
+            showLegend
           />
         </View>
 
-        {/* 7. AreaChart */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>7. AreaChart</Text>
-          <AreaChart
-            data={{
-              series: [
-                {
-                  data: [
-                    { x: 0, y: 30 },
-                    { x: 1, y: 45 },
-                    { x: 2, y: 42 },
-                    { x: 3, y: 58 },
-                    { x: 4, y: 65 },
-                    { x: 5, y: 72 },
-                  ],
-                  color: "#34C759",
-                },
-              ],
-            }}
+          <Text style={styles.cardTitle}>7. LineChart - Area Chart (filled)</Text>
+          <Text style={styles.description}>Use filled={true} to create area charts</Text>
+          <LineChart
+            data={salesData}
+            xKey="month"
+            dataKeys={["profit"]}
+            colors={["#34C759"]}
+            labels={["Profit"]}
             width={340}
             height={200}
+            filled={true}
+            showGradient
+            showGrid
           />
         </View>
 
-        {/* 8. MultiLineSparkline */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>8. MultiLineSparkline</Text>
           <MultiLineSparkline
-            data={{
-              series: [
-                {
-                  data: [10, 15, 12, 18, 16, 20, 22],
-                  color: "#007AFF",
-                  label: "Series 1",
-                },
-                {
-                  data: [8, 12, 10, 15, 13, 17, 19],
-                  color: "#34C759",
-                  label: "Series 2",
-                },
-              ],
-            }}
+            data={[
+              { time: 0, cpu: 20, memory: 30, disk: 15 },
+              { time: 1, cpu: 35, memory: 45, disk: 25 },
+              { time: 2, cpu: 28, memory: 38, disk: 20 },
+              { time: 3, cpu: 42, memory: 52, disk: 30 },
+              { time: 4, cpu: 38, memory: 48, disk: 28 },
+            ]}
+            dataKeys={["cpu", "memory", "disk"]}
+            colors={["#007AFF", "#FF3B30", "#34C759"]}
+            labels={["CPU", "Memory", "Disk"]}
             width={340}
             height={100}
           />
         </View>
+      </View>
 
-        {/* ========== BAR CHARTS (6) ========== */}
-        <Text style={styles.sectionHeader}>Bar Charts</Text>
+      {/* Bar Charts */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Bar Charts</Text>
 
-        {/* 9. BarChart */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>9. BarChart</Text>
           <BarChart
-            data={{
-              data: [
-                { value: 65, label: "Jan" },
-                { value: 78, label: "Feb" },
-                { value: 85, label: "Mar" },
-                { value: 92, label: "Apr" },
-                { value: 88, label: "May" },
-              ],
-            }}
+            data={productData}
+            xKey="product"
+            dataKey="sales"
+            colors={["#007AFF"]}
             width={340}
             height={200}
           />
         </View>
 
-        {/* 10. HorizontalBarChart */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>10. HorizontalBarChart</Text>
           <HorizontalBarChart
-            data={{
-              data: [
-                { value: 85, label: "Product A" },
-                { value: 72, label: "Product B" },
-                { value: 68, label: "Product C" },
-                { value: 55, label: "Product D" },
-              ],
-            }}
+            data={productData}
+            labelKey="product"
+            dataKey="sales"
+            colors={["#34C759"]}
             width={340}
             height={200}
           />
         </View>
 
-        {/* 11. StackedBarChart */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>11. StackedBarChart</Text>
-          <StackedBarChart
-            data={{
-              data: [
-                {
-                  label: "Q1",
-                  segments: [
-                    { value: 30, color: "#007AFF", label: "A" },
-                    { value: 25, color: "#34C759", label: "B" },
-                    { value: 20, color: "#FF9500", label: "C" },
-                  ],
-                },
-                {
-                  label: "Q2",
-                  segments: [
-                    { value: 35, color: "#007AFF", label: "A" },
-                    { value: 28, color: "#34C759", label: "B" },
-                    { value: 22, color: "#FF9500", label: "C" },
-                  ],
-                },
-              ],
-            }}
-            width={340}
-            height={200}
-          />
-        </View>
-
-        {/* 12. GroupedBarChart */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>12. GroupedBarChart</Text>
+          <Text style={styles.cardTitle}>11. GroupedBarChart</Text>
           <GroupedBarChart
-            data={{
-              data: [
-                {
-                  groupLabel: "Q1",
-                  values: [
-                    { value: 65, color: "#007AFF", label: "Team A" },
-                    { value: 58, color: "#34C759", label: "Team B" },
-                  ],
-                },
-                {
-                  groupLabel: "Q2",
-                  values: [
-                    { value: 72, color: "#007AFF", label: "Team A" },
-                    { value: 65, color: "#34C759", label: "Team B" },
-                  ],
-                },
-              ],
-            }}
+            data={salesData.slice(0, 4)}
+            categoryKey="month"
+            dataKeys={["sales", "expenses"]}
+            colors={["#007AFF", "#FF3B30"]}
+            labels={["Sales", "Expenses"]}
             width={340}
-            height={200}
+            height={220}
           />
         </View>
 
-        {/* 13. Histogram */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>13. Histogram</Text>
-          <Histogram
-            data={{
-              data: [1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7],
-              binCount: 7,
-            }}
+          <Text style={styles.cardTitle}>12. StackedBarChart</Text>
+          <StackedBarChart
+            data={salesData.slice(0, 4)}
+            categoryKey="month"
+            dataKeys={["sales", "expenses"]}
+            colors={["#007AFF", "#FF3B30"]}
+            labels={["Sales", "Expenses"]}
             width={340}
-            height={200}
+            height={220}
           />
         </View>
 
-        {/* 14. WaterfallChart */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>14. WaterfallChart</Text>
+          <Text style={styles.cardTitle}>13. WaterfallChart</Text>
           <WaterfallChart
-            data={{
-              data: [
-                { value: 100, label: "Start", isTotal: true },
-                { value: 20, label: "Revenue" },
-                { value: -15, label: "Costs" },
-                { value: 10, label: "Profit" },
-                { value: 115, label: "End", isTotal: true },
-              ],
-            }}
+            data={[
+              { category: "Starting", value: 100 },
+              { category: "Sales", value: 50 },
+              { category: "Expenses", value: -30 },
+              { category: "Profit", value: 20 },
+            ]}
+            labelKey="category"
+            valueKey="value"
+            colors={["#34C759", "#FF3B30"]}
             width={340}
-            height={200}
+            height={220}
+          />
+        </View>
+      </View>
+
+      {/* Circular Charts */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Circular Charts</Text>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>14. PieChart</Text>
+          <PieChart
+            data={productData}
+            labelKey="product"
+            valueKey="sales"
+            colors={["#007AFF", "#FF3B30", "#34C759", "#FF9500"]}
+            width={340}
+            height={280}
+            showLabels
           />
         </View>
 
-        {/* ========== DISTRIBUTION (3) ========== */}
-        <Text style={styles.sectionHeader}>Distribution Charts</Text>
-
-        {/* 15. PieChart */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>15. PieChart</Text>
-          <View style={styles.centered}>
-            <PieChart
-              data={{
-                segments: [
-                  { value: 35, label: "Product A", color: "#007AFF" },
-                  { value: 25, label: "Product B", color: "#34C759" },
-                  { value: 20, label: "Product C", color: "#FF9500" },
-                  { value: 20, label: "Product D", color: "#FF3B30" },
-                ],
-              }}
-              width={300}
-              height={300}
-            />
-          </View>
-        </View>
-
-        {/* 16. FunnelChart */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>16. FunnelChart</Text>
-          <FunnelChart
-            data={{
-              stages: [
-                { value: 1000, label: "Visitors" },
-                { value: 500, label: "Leads" },
-                { value: 200, label: "Prospects" },
-                { value: 100, label: "Customers" },
-              ],
-            }}
-            width={340}
+          <Text style={styles.cardTitle}>15. RadarChart</Text>
+          <RadarChart
+            data={[
+              { skill: "Speed", player1: 85, player2: 70 },
+              { skill: "Strength", player1: 75, player2: 90 },
+              { skill: "Stamina", player1: 80, player2: 75 },
+              { skill: "Skill", player1: 90, player2: 85 },
+            ]}
+            categoryKey="skill"
+            dataKeys={["player1", "player2"]}
+            colors={["#007AFF", "#FF3B30"]}
+            labels={["Player 1", "Player 2"]}
+            width={300}
             height={300}
           />
         </View>
+      </View>
 
-        {/* 17. BoxPlot */}
+      {/* Scatter & Bubble */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Scatter & Bubble Charts</Text>
+
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>17. BoxPlot</Text>
-          <BoxPlot
-            data={{
-              data: [
-                {
-                  label: "Team A",
-                  min: 45,
-                  q1: 60,
-                  median: 75,
-                  q3: 85,
-                  max: 95,
-                },
-                {
-                  label: "Team B",
-                  min: 50,
-                  q1: 65,
-                  median: 72,
-                  q3: 80,
-                  max: 90,
-                },
-              ],
-            }}
-            width={340}
-            height={200}
-          />
-        </View>
-
-        {/* ========== SCIENTIFIC (5) ========== */}
-        <Text style={styles.sectionHeader}>Scientific Charts</Text>
-
-        {/* 18. ScatterPlot */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>18. ScatterPlot</Text>
+          <Text style={styles.cardTitle}>16. ScatterPlot</Text>
           <ScatterPlot
-            data={{
-              series: [
-                {
-                  data: [
-                    { x: 10, y: 20, label: "A" },
-                    { x: 25, y: 35, label: "B" },
-                    { x: 40, y: 30, label: "C" },
-                    { x: 55, y: 45, label: "D" },
-                    { x: 70, y: 60, label: "E" },
-                  ],
-                  color: "#007AFF",
-                  label: "Series 1",
-                },
-              ],
-            }}
+            data={[
+              { hours: 2, score: 65 },
+              { hours: 4, score: 75 },
+              { hours: 6, score: 85 },
+              { hours: 8, score: 90 },
+            ]}
+            xKey="hours"
+            yKey="score"
+            colors={["#007AFF"]}
             width={340}
-            height={200}
+            height={250}
+            showGrid
+            showXAxis
+            showYAxis
           />
         </View>
 
-        {/* 19. BubbleChart */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>19. BubbleChart</Text>
+          <Text style={styles.cardTitle}>17. BubbleChart</Text>
           <BubbleChart
-            data={{
-              series: [
-                {
-                  data: [
-                    { x: 30, y: 40, size: 20, label: "A" },
-                    { x: 50, y: 60, size: 35, label: "B" },
-                    { x: 70, y: 50, size: 25, label: "C" },
-                    { x: 40, y: 70, size: 30, label: "D" },
-                  ],
-                  color: "#007AFF",
-                  label: "Series 1",
-                },
-              ],
-            }}
+            data={[
+              { x: 20, y: 30, size: 50 },
+              { x: 40, y: 50, size: 80 },
+              { x: 60, y: 40, size: 60 },
+            ]}
+            xKey="x"
+            yKey="y"
+            sizeKey="size"
+            colors={["#007AFF"]}
+            width={340}
+            height={250}
+            showGrid
+            showXAxis
+            showYAxis
+          />
+        </View>
+      </View>
+
+      {/* Distribution Charts */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Distribution Charts</Text>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>18. Histogram</Text>
+          <Histogram
+            data={[
+              { score: 45 },
+              { score: 67 },
+              { score: 72 },
+              { score: 85 },
+              { score: 90 },
+              { score: 78 },
+              { score: 82 },
+            ]}
+            valueKey="score"
+            bins={5}
             width={340}
             height={200}
           />
         </View>
 
-        {/* 20. Heatmap */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>19. BoxPlot</Text>
+          <BoxPlot
+            data={[
+              { group: "Group A", min: 12, q1: 15, median: 20, q3: 25, max: 30 },
+              { group: "Group B", min: 8, q1: 12, median: 20, q3: 24, max: 28 },
+              { group: "Group C", min: 10, q1: 18, median: 25, q3: 30, max: 35 },
+            ]}
+            labelKey="group"
+            minKey="min"
+            q1Key="q1"
+            medianKey="median"
+            q3Key="q3"
+            maxKey="max"
+            width={340}
+            height={220}
+          />
+        </View>
+      </View>
+
+      {/* Specialized Charts */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Specialized Charts</Text>
+
         <View style={styles.card}>
           <Text style={styles.cardTitle}>20. Heatmap</Text>
           <Heatmap
-            data={{
-              data: [
-                { x: 0, y: 0, value: 10 },
-                { x: 1, y: 0, value: 20 },
-                { x: 2, y: 0, value: 15 },
-                { x: 0, y: 1, value: 25 },
-                { x: 1, y: 1, value: 30 },
-                { x: 2, y: 1, value: 22 },
-                { x: 0, y: 2, value: 18 },
-                { x: 1, y: 2, value: 28 },
-                { x: 2, y: 2, value: 35 },
-              ],
-              xLabels: ["Mon", "Tue", "Wed"],
-              yLabels: ["AM", "Noon", "PM"],
-            }}
+            data={[
+              { day: "Mon", hour: "8AM", value: 20 },
+              { day: "Mon", hour: "12PM", value: 45 },
+              { day: "Tue", hour: "8AM", value: 30 },
+              { day: "Tue", hour: "12PM", value: 55 },
+              { day: "Wed", hour: "8AM", value: 25 },
+              { day: "Wed", hour: "12PM", value: 50 },
+            ]}
+            xKey="day"
+            yKey="hour"
+            valueKey="value"
             width={340}
             height={200}
           />
         </View>
 
-        {/* 21. RadarChart */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>21. RadarChart</Text>
-          <View style={styles.centered}>
-            <RadarChart
-              data={{
-                series: [
-                  {
-                    data: [
-                      { axis: "Speed", value: 80 },
-                      { axis: "Power", value: 70 },
-                      { axis: "Agility", value: 90 },
-                      { axis: "Defense", value: 65 },
-                      { axis: "Stamina", value: 75 },
-                    ],
-                    color: "#007AFF",
-                    label: "Stats",
-                  },
-                ],
-              }}
-              width={300}
-              height={300}
-            />
-          </View>
+          <Text style={styles.cardTitle}>21. FunnelChart</Text>
+          <FunnelChart
+            data={[
+              { stage: "Visitors", count: 10000 },
+              { stage: "Sign ups", count: 5000 },
+              { stage: "Trials", count: 2000 },
+              { stage: "Customers", count: 500 },
+            ]}
+            labelKey="stage"
+            valueKey="count"
+            colors={["#007AFF", "#34C759", "#FF9500", "#FF3B30"]}
+            width={340}
+            height={280}
+          />
         </View>
 
-        {/* 22. CandlestickChart */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>22. CandlestickChart</Text>
           <CandlestickChart
-            data={{
-              data: [
-                {
-                  date: new Date("2024-01-01"),
-                  open: 100,
-                  high: 110,
-                  low: 95,
-                  close: 105,
-                },
-                {
-                  date: new Date("2024-01-02"),
-                  open: 105,
-                  high: 115,
-                  low: 100,
-                  close: 108,
-                },
-                {
-                  date: new Date("2024-01-03"),
-                  open: 108,
-                  high: 120,
-                  low: 105,
-                  close: 115,
-                },
-                {
-                  date: new Date("2024-01-04"),
-                  open: 115,
-                  high: 118,
-                  low: 110,
-                  close: 112,
-                },
-                {
-                  date: new Date("2024-01-05"),
-                  open: 112,
-                  high: 125,
-                  low: 110,
-                  close: 120,
-                },
-              ],
-            }}
+            data={[
+              { date: "Jan 1", open: 100, high: 110, low: 95, close: 105 },
+              { date: "Jan 2", open: 105, high: 115, low: 100, close: 110 },
+              { date: "Jan 3", open: 110, high: 120, low: 108, close: 115 },
+              { date: "Jan 4", open: 115, high: 118, low: 105, close: 108 },
+              { date: "Jan 5", open: 108, high: 125, low: 106, close: 122 },
+            ]}
+            dateKey="date"
+            openKey="open"
+            highKey="high"
+            lowKey="low"
+            closeKey="close"
             width={340}
-            height={200}
+            height={250}
           />
         </View>
+      </View>
 
-        {/* ========== HIERARCHICAL (3) ========== */}
-        <Text style={styles.sectionHeader}>Hierarchical Charts</Text>
+      {/* Advanced Hierarchical Charts */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Advanced Hierarchical Charts</Text>
 
-        {/* 23. Treemap */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>23. Treemap</Text>
-          <Treemap
-            data={{
-              data: [
-                { label: "Category A", value: 40, color: "#007AFF" },
-                { label: "Category B", value: 30, color: "#34C759" },
-                { label: "Category C", value: 20, color: "#FF9500" },
-                { label: "Category D", value: 10, color: "#FF3B30" },
-              ],
-            }}
+          <Text style={styles.cardTitle}>23. SankeyDiagram</Text>
+          <SankeyDiagram
+            data={[
+              { from: "Source", to: "Middle", amount: 100 },
+              { from: "Middle", to: "Target A", amount: 60 },
+              { from: "Middle", to: "Target B", amount: 40 },
+            ]}
+            sourceKey="from"
+            targetKey="to"
+            valueKey="amount"
             width={340}
             height={250}
           />
         </View>
 
-        {/* 24. SunburstChart */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>24. SunburstChart</Text>
-          <View style={styles.centered}>
-            <SunburstChart
-              data={{
-                data: [
-                  { label: "A", value: 40 },
-                  { label: "B", value: 30 },
-                  { label: "C", value: 30 },
-                ],
-              }}
-              width={300}
-              height={300}
-            />
-          </View>
-        </View>
-
-        {/* 25. SankeyDiagram */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>25. SankeyDiagram</Text>
-          <SankeyDiagram
-            data={{
-              nodes: [
-                { id: "A", label: "Source A" },
-                { id: "B", label: "Source B" },
-                { id: "C", label: "Target C" },
-                { id: "D", label: "Target D" },
-              ],
-              links: [
-                { source: "A", target: "C", value: 60 },
-                { source: "A", target: "D", value: 40 },
-                { source: "B", target: "C", value: 30 },
-                { source: "B", target: "D", value: 70 },
-              ],
-            }}
+          <Text style={styles.cardTitle}>24. Treemap</Text>
+          <Treemap
+            data={[
+              { category: "Category A", value: 100 },
+              { category: "Category B", value: 80 },
+              { category: "Category C", value: 60 },
+              { category: "Category D", value: 40 },
+            ]}
+            labelKey="category"
+            valueKey="value"
+            colors={["#007AFF", "#34C759", "#FF3B30", "#FF9500"]}
             width={340}
-            height={300}
+            height={250}
           />
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            ✨ All 24 widgets from react-native-metrify
-          </Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>25. SunburstChart</Text>
+          <SunburstChart
+            data={[
+              { category: "Category A", value: 100 },
+              { category: "Category B", value: 80 },
+              { category: "Category C", value: 60 },
+              { category: "Category D", value: 40 },
+            ]}
+            labelKey="category"
+            valueKey="value"
+            colors={["#007AFF", "#34C759", "#FF3B30", "#FF9500"]}
+            width={340}
+            height={340}
+          />
         </View>
-      </ScrollView>
-    </ThemeProvider>
+      </View>
+
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          ✨ Simple API - Recharts-like, data-driven approach
+        </Text>
+        <Text style={styles.footerText}>
+          📚 Legacy API examples: AllWidgetsDashboard.Legacy.tsx
+        </Text>
+        <Text style={styles.footerText}>
+          📖 Complete API docs: examples/API_REFERENCE.md
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -623,46 +549,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
-  mainHeader: {
-    fontSize: 32,
-    fontWeight: "bold",
+  header: {
     padding: 20,
-    paddingBottom: 10,
-    color: "#333",
+    backgroundColor: "#007AFF",
   },
-  sectionHeader: {
+  title: {
     fontSize: 24,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.8)",
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: "600",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-    color: "#007AFF",
+    padding: 15,
+    backgroundColor: "white",
+    borderBottomWidth: 2,
+    borderBottomColor: "#007AFF",
   },
-  kpiGrid: {
+  row: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 20,
     gap: 10,
-    marginBottom: 10,
-  },
-  kpiCard: {
-    flex: 1,
-    minWidth: 160,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingHorizontal: 10,
   },
   card: {
-    backgroundColor: "#fff",
-    marginHorizontal: 20,
-    marginBottom: 20,
-    padding: 20,
-    borderRadius: 12,
+    flex: 1,
+    margin: 10,
+    padding: 15,
+    backgroundColor: "white",
+    borderRadius: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -670,21 +592,36 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
-    marginBottom: 15,
+    marginBottom: 12,
     color: "#333",
+  },
+  description: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 10,
+    fontStyle: "italic",
+  },
+  note: {
+    fontSize: 12,
+    color: "#FF9500",
+    marginBottom: 8,
+    fontStyle: "italic",
   },
   centered: {
     alignItems: "center",
   },
   footer: {
-    padding: 40,
+    padding: 20,
     alignItems: "center",
+    backgroundColor: "white",
+    marginTop: 20,
+    marginBottom: 40,
   },
   footerText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666",
-    fontStyle: "italic",
+    marginBottom: 5,
   },
 });

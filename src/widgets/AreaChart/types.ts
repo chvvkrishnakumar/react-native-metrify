@@ -1,34 +1,15 @@
 /**
  * AreaChart Widget types
+ * @deprecated AreaChart is now a wrapper around LineChart. Use LineChart types instead.
  */
-import { BaseWidgetProps, TimeInterval } from '../../core';
+import { LineChartWidgetProps } from '../LineChart/types';
 
-export interface AreaChartDataPoint {
-  x: number | Date;
-  y: number;
-}
+// Re-export LineChart types for backward compatibility
+export type AreaChartWidgetProps = LineChartWidgetProps;
 
-export interface AreaChartSeries {
-  data: AreaChartDataPoint[];
-  color: string;
-  label?: string;
-}
-
-export interface AreaChartData {
-  series: AreaChartSeries[];
-  title?: string;
-  timeInterval?: TimeInterval;
-}
-
-export type AreaChartStyle = 'smooth' | 'linear';
-
-export interface AreaChartWidgetProps extends BaseWidgetProps<AreaChartData> {
-  showXAxis?: boolean;
-  showYAxis?: boolean;
-  showGrid?: boolean;
-  showLegend?: boolean;
-  showGradient?: boolean;
-  stacked?: boolean;
-  curveStyle?: AreaChartStyle;
-  maxXLabels?: number;
-}
+// Legacy type aliases (for backward compatibility)
+export type { LineChartDataPoint as AreaChartDataPoint } from '../LineChart/types';
+export type { LineChartSeries as AreaChartSeries } from '../LineChart/types';
+export type { LineChartData as AreaChartData } from '../LineChart/types';
+export type { LineChartSimpleProps as AreaChartSimpleProps } from '../LineChart/types';
+export type { LineChartLegacyProps as AreaChartLegacyProps } from '../LineChart/types';

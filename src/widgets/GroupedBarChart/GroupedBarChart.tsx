@@ -6,25 +6,37 @@ import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
 import { Text } from '../../renderer-svg/primitives';
-import { GroupedBarChartWidgetProps } from './types';
+import { GroupedBarChartData, GroupedBarChartLegacyProps, GroupedBarChartSimpleProps, GroupedBarChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToGroupedBarData } from '../../core/utils/dataTransform';
 
-export const GroupedBarChart = memo<GroupedBarChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  barWidth = 20,
-  groupSpacing = 32,
-  barSpacing = 4,
-  showValues = false,
-  showLabels = true,
-  showLegend = true,
-  maxGroups = 10,
-  testID,
-}) => {
+export const GroupedBarChart = memo<GroupedBarChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    barWidth = 20,
+    groupSpacing = 32,
+    barSpacing = 4,
+    showValues = false,
+    showLabels = true,
+    showLegend = true,
+    maxGroups = 10,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 250);
+
+  // Transform data if using simple API
+  const widgetData: GroupedBarChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'categoryKey' in props && 'dataKeys' in props) {
+      const simpleProps = props as GroupedBarChartSimpleProps;
+      const transformed = transformToGroupedBarData(simpleProps.data, simpleProps.categoryKey, simpleProps.dataKeys, simpleProps.colors, simpleProps.labels);
+      return { data: transformed.groups.map(g => ({ groupLabel: g.category, values: g.values })) };
+    }
+    return (props as GroupedBarChartLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

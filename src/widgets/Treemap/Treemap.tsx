@@ -6,7 +6,8 @@ import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme } from '../../core';
 import { Text } from '../../renderer-svg/primitives';
-import { TreemapWidgetProps, TreemapNode } from './types';
+import { TreemapWidgetProps, TreemapNode, TreemapData, TreemapLegacyProps, TreemapSimpleProps } from './types';
+import { isSimpleDataFormat, transformToTreemapData } from '../../core/utils/dataTransform';
 
 interface LayoutRect {
   x: number;
@@ -79,20 +80,36 @@ function squarify(
   return rects;
 }
 
-export const Treemap = memo<TreemapWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showLabels = true,
-  showValues = true,
-  colorScheme = 'categorical',
-  padding = 2,
-  testID,
-}) => {
+export const Treemap = memo<TreemapWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showLabels = true,
+    showValues = true,
+    colorScheme = 'categorical',
+    padding = 2,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 300);
+
+  // Transform data if using simple API
+  const widgetData: TreemapData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'labelKey' in props && 'valueKey' in props) {
+      const simpleProps = props as TreemapSimpleProps;
+      return transformToTreemapData(
+        simpleProps.data,
+        simpleProps.labelKey,
+        simpleProps.valueKey,
+        simpleProps.parentKey,
+        simpleProps.colors
+      );
+    }
+    return (props as TreemapLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

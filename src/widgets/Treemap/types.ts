@@ -15,9 +15,43 @@ export interface TreemapData {
   title?: string;
 }
 
-export interface TreemapWidgetProps extends BaseWidgetProps<TreemapData> {
+// Simple API
+export interface TreemapSimpleProps {
+  /** Array of data objects */
+  data: Record<string, any>[];
+  /** Key for label values */
+  labelKey: string;
+  /** Key for value */
+  valueKey: string;
+  /** Optional key for parent (enables hierarchical structure) */
+  parentKey?: string;
+  /** Optional colors for nodes */
+  colors?: string[];
+  width?: number;
+  height?: number;
+  loading?: boolean;
+  theme?: any;
+  testID?: string;
   showLabels?: boolean;
   showValues?: boolean;
   colorScheme?: 'categorical' | 'sequential';
   padding?: number;
 }
+
+// Legacy API
+export interface TreemapLegacyProps {
+  data: TreemapData;
+  labelKey?: never;
+  valueKey?: never;
+  width?: number;
+  height?: number;
+  loading?: boolean;
+  theme?: any;
+  testID?: string;
+  showLabels?: boolean;
+  showValues?: boolean;
+  colorScheme?: 'categorical' | 'sequential';
+  padding?: number;
+}
+
+export type TreemapWidgetProps = TreemapSimpleProps | TreemapLegacyProps;

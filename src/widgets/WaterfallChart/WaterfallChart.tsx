@@ -6,25 +6,36 @@ import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Line as SvgLine } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme } from '../../core';
 import { Text } from '../../renderer-svg/primitives';
-import { WaterfallChartWidgetProps } from './types';
+import { WaterfallChartData, WaterfallChartLegacyProps, WaterfallChartSimpleProps, WaterfallChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToWaterfallData } from '../../core/utils/dataTransform';
 
-export const WaterfallChart = memo<WaterfallChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showValues = true,
-  showLabels = true,
-  positiveColor,
-  negativeColor,
-  totalColor,
-  barWidth = 40,
-  barSpacing = 20,
-  testID,
-}) => {
+export const WaterfallChart = memo<WaterfallChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showValues = true,
+    showLabels = true,
+    positiveColor,
+    negativeColor,
+    totalColor,
+    barWidth = 40,
+    barSpacing = 20,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 400, 300);
+
+  // Transform data if using simple API
+  const widgetData: WaterfallChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'xKey' in props || 'dataKeys' in props || 'labelKey' in props || 'valueKey' in props || 'categoryKey' in props || 'dateKey' in props) {
+      const simpleProps = props as WaterfallChartSimpleProps;
+      return transformToWaterfallData(simpleProps.data, simpleProps.labelKey, simpleProps.valueKey, simpleProps.colors);
+    }
+    return (props as WaterfallChartLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

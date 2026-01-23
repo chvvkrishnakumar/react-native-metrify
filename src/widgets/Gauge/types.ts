@@ -10,10 +10,11 @@ export interface GaugeData {
   unit?: string;
 }
 
-export interface GaugeWidgetProps extends BaseWidgetProps<GaugeData> {
+// Note: Gauge uses single value, Simple API not applicable
+export type GaugeWidgetProps = BaseWidgetProps<GaugeData> & {
   startAngle?: number;
   endAngle?: number;
   thickness?: number;
   showValue?: boolean;
   showLabel?: boolean;
-}
+};

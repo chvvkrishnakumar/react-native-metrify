@@ -24,3 +24,4 @@ export * from './types';
 // Utils
 export * from './utils/time';
 export * from './utils/responsive';
+export * from './utils/dataTransform';

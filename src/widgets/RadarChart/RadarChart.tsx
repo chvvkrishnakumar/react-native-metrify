@@ -6,23 +6,41 @@ import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Polygon, Line as SvgLine, Circle } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, polarToCartesian, normalize } from '../../core';
 import { Text } from '../../renderer-svg/primitives';
-import { RadarChartWidgetProps } from './types';
+import { RadarChartData, RadarChartLegacyProps, RadarChartSimpleProps, RadarChartWidgetProps } from './types';
+import { isSimpleDataFormat, transformToRadarData } from '../../core/utils/dataTransform';
 
-export const RadarChart = memo<RadarChartWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  showLabels = true,
-  showLegend = true,
-  showGrid = true,
-  gridLevels = 5,
-  size: customSize,
-  testID,
-}) => {
+export const RadarChart = memo<RadarChartWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    showLabels = true,
+    showLegend = true,
+    showGrid = true,
+    gridLevels = 5,
+    size: customSize,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 350);
+
+  // Transform data if using simple API
+  const widgetData: RadarChartData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'categoryKey' in props && 'dataKeys' in props) {
+      const simpleProps = props as RadarChartSimpleProps;
+      const transformed = transformToRadarData(simpleProps.data, simpleProps.categoryKey, simpleProps.dataKeys, simpleProps.colors, simpleProps.labels);
+      return { 
+        series: transformed.series.map(s => ({
+          data: s.data.map(d => ({ axis: d.category, value: d.value })),
+          color: s.color,
+          label: s.label
+        }))
+      };
+    }
+    return (props as RadarChartLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

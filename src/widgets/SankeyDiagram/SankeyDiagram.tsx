@@ -6,7 +6,8 @@ import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Path } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme } from '../../core';
 import { Text } from '../../renderer-svg/primitives';
-import { SankeyDiagramWidgetProps } from './types';
+import { SankeyDiagramWidgetProps, SankeyDiagramData, SankeyDiagramLegacyProps, SankeyDiagramSimpleProps } from './types';
+import { isSimpleDataFormat, transformToSankeyData } from '../../core/utils/dataTransform';
 
 interface LayoutNode {
   id: string;
@@ -26,20 +27,36 @@ interface LayoutLink {
   color: string;
 }
 
-export const SankeyDiagram = memo<SankeyDiagramWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  nodeWidth = 20,
-  nodePadding = 20,
-  showLabels = true,
-  showValues = false,
-  testID,
-}) => {
+export const SankeyDiagram = memo<SankeyDiagramWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    nodeWidth = 20,
+    nodePadding = 20,
+    showLabels = true,
+    showValues = false,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 400, 300);
+
+  // Transform data if using simple API
+  const widgetData: SankeyDiagramData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'sourceKey' in props && 'targetKey' in props && 'valueKey' in props) {
+      const simpleProps = props as SankeyDiagramSimpleProps;
+      return transformToSankeyData(
+        simpleProps.data,
+        simpleProps.sourceKey,
+        simpleProps.targetKey,
+        simpleProps.valueKey,
+        simpleProps.colors
+      );
+    }
+    return (props as SankeyDiagramLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

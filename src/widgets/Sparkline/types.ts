@@ -10,9 +10,36 @@ export interface SparklineData {
 
 export type SparklineStyle = 'line' | 'area';
 
-export interface SparklineWidgetProps extends BaseWidgetProps<SparklineData> {
+// Simple API
+export interface SparklineSimpleProps {
+  /** Array of data objects */
+  data: Record<string, any>[];
+  /** Key for values to plot */
+  valueKey: string;
+  width?: number;
+  height?: number;
+  loading?: boolean;
+  theme?: any;
+  testID?: string;
   style?: SparklineStyle;
   strokeWidth?: number;
   showGradient?: boolean;
   maxDataPoints?: number;
 }
+
+// Legacy API
+export interface SparklineLegacyProps {
+  data: SparklineData;
+  valueKey?: never;
+  width?: number;
+  height?: number;
+  loading?: boolean;
+  theme?: any;
+  style?: SparklineStyle;
+  strokeWidth?: number;
+  showGradient?: boolean;
+  maxDataPoints?: number;
+  testID?: string;
+}
+
+export type SparklineWidgetProps = SparklineSimpleProps | SparklineLegacyProps;

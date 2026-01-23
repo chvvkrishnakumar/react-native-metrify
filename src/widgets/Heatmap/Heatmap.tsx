@@ -6,25 +6,39 @@ import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
 import { Text } from '../../renderer-svg/primitives';
-import { HeatmapWidgetProps } from './types';
+import { HeatmapData, HeatmapLegacyProps, HeatmapSimpleProps, HeatmapWidgetProps } from './types';
+import { isSimpleDataFormat, transformToHeatmapData } from '../../core/utils/dataTransform';
 
-export const Heatmap = memo<HeatmapWidgetProps>(({
-  data: widgetData,
-  width,
-  height,
-  loading = false,
-  theme: themeOverride,
-  cellSize = 30,
-  cellSpacing = 2,
-  showValues = false,
-  showLabels = true,
-  colorScheme = 'blue',
-  minColor,
-  maxColor,
-  testID,
-}) => {
+export const Heatmap = memo<HeatmapWidgetProps>((props) => {
+  const {
+    width,
+    height,
+    loading = false,
+    theme: themeOverride,
+    cellSize = 30,
+    cellSpacing = 2,
+    showValues = false,
+    showLabels = true,
+    colorScheme = 'blue',
+    minColor,
+    maxColor,
+    testID,
+  } = props;
+
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 400, 300);
+
+  // Transform data if using simple API
+  const widgetData: HeatmapData | null = useMemo(() => {
+    if (isSimpleDataFormat(props) && 'xKey' in props && 'yKey' in props && 'valueKey' in props) {
+      const simpleProps = props as HeatmapSimpleProps;
+      const transformed = transformToHeatmapData(simpleProps.data, simpleProps.xKey, simpleProps.yKey, simpleProps.valueKey);
+      const xLabels = [...new Set(transformed.data.map(d => d.x))];
+      const yLabels = [...new Set(transformed.data.map(d => d.y))];
+      return { data: transformed.data, xLabels, yLabels };
+    }
+    return (props as HeatmapLegacyProps).data || null;
+  }, [props]);
 
   if (loading) {
     return (

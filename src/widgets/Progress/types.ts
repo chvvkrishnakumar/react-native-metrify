@@ -12,8 +12,9 @@ export interface ProgressData {
 
 export type ProgressVariant = 'bar' | 'circle';
 
-export interface ProgressWidgetProps extends BaseWidgetProps<ProgressData> {
+// Note: Progress uses single value, Simple API not applicable
+export type ProgressWidgetProps = BaseWidgetProps<ProgressData> & {
   variant?: ProgressVariant;
   barHeight?: number;
   showValue?: boolean;
-}
+};

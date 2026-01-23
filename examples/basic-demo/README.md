@@ -1,31 +1,52 @@
 # Basic Demo - react-native-metrify
 
-Simple examples showcasing all 24 chart types.
+Simple examples showcasing all widgets with the new **Simple API** (v0.1.0-beta.1).
 
 ## Quick Start
 
-Copy any example below into your React Native app:
-
 ```bash
-npm install react-native-metrify@alpha
+npm install react-native-metrify@beta
 npm install react-native-svg react-native-reanimated
 ```
 
 ## Examples
 
-See the files in this directory:
-- `AllWidgetsDashboard.tsx` - ⭐ ALL 24 widgets in one scrollable view
-- `API_REFERENCE.md` - Quick reference for widget data formats
+### Main Examples
+- `AllWidgetsDashboard.tsx` - ⭐ ALL widgets using **Simple API** (Recharts-like)
+- `AllWidgetsDashboard.Legacy.tsx` - Same widgets using **Legacy API** (for reference)
+- `DashboardExample.tsx` - Real-world dashboard example
 - `KPIExample.tsx` - KPI widgets with trends (7 variations)
 - `GaugeExample.tsx` - Circular gauges (6 variations)
-- `DashboardExample.tsx` - Real-world dashboard example
 
-Each file is a standalone example you can copy directly into your app.
+### Documentation
+- `../API_REFERENCE.md` - Complete API reference for all widgets (both APIs)
 
-### Quick Start
+## What's New in Beta.1
 
-1. **Start with AllWidgetsDashboard.tsx** to see all 24 chart types
-2. **Check API_REFERENCE.md** for specific widget data formats
-3. **Copy and adapt** examples to your needs
+**Simple API** - Recharts-like, data-driven approach:
+
+```tsx
+// Just pass your raw data and specify keys!
+<LineChart
+  data={[
+    { month: 'Jan', sales: 100, expenses: 60 },
+    { month: 'Feb', sales: 120, expenses: 70 },
+  ]}
+  xKey="month"
+  dataKeys={['sales', 'expenses']}
+  colors={['#007AFF', '#FF3B30']}
+  showGrid
+  showLegend
+/>
+```
+
+**Both APIs work** - Legacy API is still fully supported.
+
+## Quick Start
+
+1. **Start with AllWidgetsDashboard.tsx** to see Simple API examples
+2. **Check AllWidgetsDashboard.Legacy.tsx** for Legacy API comparison
+3. **Read API_REFERENCE.md** for complete documentation
+4. **Copy and adapt** examples to your needs
 
 All examples are fully typed and tested!
