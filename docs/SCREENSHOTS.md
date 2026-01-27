@@ -7,7 +7,7 @@ This guide will help you create consistent, high-quality screenshots of all widg
 1. **Create a demo app** (or use your technician app)
 2. **Install the package:**
    ```bash
-   npm install react-native-metrify@alpha
+   npm install react-native-metrify@beta
    ```
 
 ## Screenshot Requirements

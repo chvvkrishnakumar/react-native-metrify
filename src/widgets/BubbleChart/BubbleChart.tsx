@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Circle, Line as SvgLine } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedStyle, useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 import { BubbleChartData, BubbleChartLegacyProps, BubbleChartSimpleProps, BubbleChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToScatterData } from '../../core/utils/dataTransform';
 
@@ -13,6 +16,7 @@ export const BubbleChart = memo<BubbleChartWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showXAxis = true,
     showYAxis = true,
@@ -120,6 +124,18 @@ export const BubbleChart = memo<BubbleChartWidgetProps>((props) => {
     });
   }, [series, chartWidth, chartHeight, globalMinX, globalMaxX, globalMinY, globalMaxY, globalMinSize, globalMaxSize, minBubbleSize, maxBubbleSize]);
 
+  // Count total bubbles for staggered animation
+  const totalBubbles = useMemo(() => {
+    return seriesBubbles.reduce((sum, s) => sum + s.bubbles.length, 0);
+  }, [seriesBubbles]);
+
+  // Staggered scale animation for bubbles (Recharts style)
+  const bubbleAnimations = useStaggeredAnimation(totalBubbles, {
+    enabled: animated,
+    duration: 800,
+    easing: 'ease-in-out',
+  });
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -148,20 +164,36 @@ export const BubbleChart = memo<BubbleChartWidgetProps>((props) => {
               <SvgLine key={`grid-x-${index}`} x1={label.x} y1={0} x2={label.x} y2={chartHeight} stroke={theme.colors.borderLight} strokeWidth={1} />
             ))}
 
-            {seriesBubbles.map((series, seriesIndex) => (
-              series.bubbles.map((bubble, bubbleIndex) => (
-                <Circle
-                  key={`series-${seriesIndex}-bubble-${bubbleIndex}`}
-                  cx={bubble.cx}
-                  cy={bubble.cy}
-                  r={bubble.r}
-                  fill={series.color}
-                  opacity={0.6}
-                  stroke={series.color}
-                  strokeWidth={2}
-                />
-              ))
-            ))}
+            {seriesBubbles.map((series, seriesIndex) => {
+              let globalBubbleIndex = 0;
+              for (let i = 0; i < seriesIndex; i++) {
+                globalBubbleIndex += seriesBubbles[i].bubbles.length;
+              }
+              
+              return series.bubbles.map((bubble, bubbleIndex) => {
+                const currentIndex = globalBubbleIndex + bubbleIndex;
+                const animatedProps = useAnimatedProps(() => {
+                  'worklet';
+                  const scale = bubbleAnimations[currentIndex].value;
+                  return {
+                    r: bubble.r * scale,
+                    opacity: 0.6 * scale,
+                  };
+                });
+
+                return (
+                  <AnimatedCircle
+                    key={`series-${seriesIndex}-bubble-${bubbleIndex}`}
+                    cx={bubble.cx}
+                    cy={bubble.cy}
+                    fill={series.color}
+                    stroke={series.color}
+                    strokeWidth={2}
+                    animatedProps={animatedProps}
+                  />
+                );
+              });
+            })}
           </Svg>
         </View>
       </View>

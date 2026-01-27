@@ -5,6 +5,7 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg from 'react-native-svg';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
 import {
   useWidgetDimensions,
   useWidgetTheme,
@@ -12,6 +13,7 @@ import {
   interpolate,
   normalize,
   createFontSizeCalculator,
+  useValueAnimation,
 } from '../../core';
 import {
   createArcPath,
@@ -99,9 +101,15 @@ export const Gauge = memo<GaugeWidgetProps>(({
   const center = size / 2;
   const radius = (size - thickness - theme.spacing.md * 2) / 2;
 
-  // Calculate progress (no animation for Expo Go)
+  // Animate the value
+  const animatedValue = useValueAnimation(normalizedValue, {
+    enabled: animated,
+    duration: 800,
+    easing: 'spring',
+  });
+
+  // Calculate progress
   const progressValue = normalize(normalizedValue, 0, max);
-  const currentAngle = interpolate(progressValue, [0, 1], [startAngle, endAngle]);
 
   // Background arc path (full gauge)
   const backgroundArcPath = useMemo(
@@ -116,18 +124,28 @@ export const Gauge = memo<GaugeWidgetProps>(({
     [center, radius, startAngle, endAngle]
   );
 
-  // Foreground arc path
-  const foregroundArcPath = useMemo(
-    () =>
-      createArcPath({
+  // Animated props for foreground arc
+  const animatedArcProps = useAnimatedProps(() => {
+    const progress = animatedValue.value / max;
+    const currentAngle = startAngle + (endAngle - startAngle) * progress;
+    
+    return {
+      d: createArcPath({
         cx: center,
         cy: center,
         radius,
         startAngle,
         endAngle: currentAngle,
       }),
-    [center, radius, startAngle, currentAngle]
-  );
+    };
+  });
+
+  // Animated text props for value display
+  const animatedTextProps = useAnimatedProps(() => {
+    return {
+      text: `${Math.round(animatedValue.value)}${unit}`,
+    };
+  });
 
   // Display value
   const displayValue = useMemo(
@@ -164,9 +182,9 @@ export const Gauge = memo<GaugeWidgetProps>(({
           fill="transparent"
         />
 
-        {/* Foreground arc */}
+        {/* Foreground arc with animation */}
         <AnimatedPath
-          d={foregroundArcPath}
+          animatedProps={animatedArcProps}
           stroke={theme.colors.chartPrimary}
           strokeWidth={thickness}
           strokeLinecap="round"

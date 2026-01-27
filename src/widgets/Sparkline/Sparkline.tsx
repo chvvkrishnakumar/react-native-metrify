@@ -5,11 +5,13 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Defs, LinearGradient, Stop } from 'react-native-svg';
+import { useAnimatedProps } from 'react-native-reanimated';
 import {
   useWidgetDimensions,
   useWidgetTheme,
   useWidgetPadding,
   useInnerDimensions,
+  useEntryAnimation,
 } from '../../core';
 import {
   createLinePath,
@@ -30,6 +32,7 @@ export const Sparkline = memo<SparklineWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     style = 'line',
     strokeWidth = 2,
@@ -39,6 +42,17 @@ export const Sparkline = memo<SparklineWidgetProps>((props) => {
   } = props;
 
   const theme = useWidgetTheme(themeOverride);
+
+  // Entry animation
+  const animationProgress = useEntryAnimation({
+    enabled: animated,
+    duration: 500,
+    easing: 'ease-in-out',
+  });
+
+  const animatedLineProps = useAnimatedProps(() => ({
+    opacity: animationProgress.value,
+  }));
 
   // Transform data if using simple API
   const widgetData: SparklineData | null = useMemo(() => {
@@ -160,7 +174,7 @@ export const Sparkline = memo<SparklineWidgetProps>((props) => {
           <AnimatedPath
             d={areaPath}
             fill={showGradient ? 'url(#sparklineGradient)' : theme.colors.chartPrimary}
-            opacity={showGradient ? 1 : 0.2}
+            animatedProps={animatedLineProps}
           />
         )}
 
@@ -171,6 +185,7 @@ export const Sparkline = memo<SparklineWidgetProps>((props) => {
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="transparent"
+          animatedProps={animatedLineProps}
         />
       </Svg>
 

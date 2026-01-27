@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Line as SvgLine } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedStyle, useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 import { HistogramData, HistogramLegacyProps, HistogramSimpleProps, HistogramWidgetProps } from './types';
 import { isSimpleDataFormat, transformToHistogramData } from '../../core/utils/dataTransform';
 
@@ -13,6 +16,7 @@ export const Histogram = memo<HistogramWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showXAxis = true,
     showYAxis = true,
@@ -87,6 +91,12 @@ export const Histogram = memo<HistogramWidgetProps>((props) => {
     };
   }, [data, binCount]);
 
+  const barAnimations = useStaggeredAnimation(bins.length, {
+    enabled: animated,
+    duration: 600,
+    easing: 'ease-out',
+  });
+
   const yAxisLabels = useMemo(() => {
     const step = Math.ceil(maxFrequency / 4);
     return Array.from({ length: 5 }, (_, i) => ({
@@ -139,18 +149,31 @@ export const Histogram = memo<HistogramWidgetProps>((props) => {
               <SvgLine key={`grid-${index}`} x1={0} y1={label.y} x2={chartWidth} y2={label.y} stroke={theme.colors.borderLight} strokeWidth={1} />
             ))}
 
-            {bars.map((bar, index) => (
-              <Rect
-                key={`bar-${index}`}
-                x={bar.x}
-                y={bar.y}
-                width={bar.width}
-                height={bar.height}
-                fill={barColor}
-                rx={theme.radius.sm}
-                ry={theme.radius.sm}
-              />
-            ))}
+            {bars.map((bar, index) => {
+              const animatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = barAnimations[index] ? barAnimations[index].value : 1;
+                const animatedHeight = bar.height * progress;
+                const animatedY = bar.y + (bar.height - animatedHeight);
+                
+                return {
+                  y: animatedY,
+                  height: animatedHeight,
+                };
+              });
+
+              return (
+                <AnimatedRect
+                  key={`bar-${index}`}
+                  x={bar.x}
+                  width={bar.width}
+                  fill={barColor}
+                  rx={theme.radius.sm}
+                  ry={theme.radius.sm}
+                  animatedProps={animatedProps}
+                />
+              );
+            })}
           </Svg>
 
           {showXAxis && (

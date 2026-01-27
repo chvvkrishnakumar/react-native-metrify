@@ -34,6 +34,7 @@ export interface StackedBarChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   barWidth?: number;
   barSpacing?: number;
@@ -52,6 +53,7 @@ export interface StackedBarChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   barWidth?: number;
   barSpacing?: number;

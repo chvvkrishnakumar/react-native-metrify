@@ -46,6 +46,7 @@ export interface BubbleChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
 }
@@ -58,6 +59,7 @@ export interface BubbleChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showXAxis?: boolean;
   showYAxis?: boolean;

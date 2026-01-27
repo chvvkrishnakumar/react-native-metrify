@@ -4,13 +4,18 @@
  */
 import React, { memo, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
 import {
   useWidgetDimensions,
   useWidgetTheme,
   createFontSizeCalculator,
+  useValueAnimation,
 } from '../../core';
 import { formatNumber, getTrendColor } from '../../renderer-svg/adapters';
 import { KPIWidgetProps } from './types';
+
+// Create animated Text component
+const AnimatedText = Animated.createAnimatedComponent(Text);
 
 /**
  * KPI Widget Component
@@ -81,11 +86,21 @@ export const KPI = memo<KPIWidgetProps>(({
 
   const { value, label, delta, trend = 'neutral', format = 'number' } = data;
 
-  // Format the value (no animation for now - Expo Go limitation)
-  const displayValue = useMemo(
-    () => formatNumber(value, format),
-    [value, format]
-  );
+  // Animate the value
+  const animatedValue = useValueAnimation(value, {
+    enabled: animated,
+    duration: 600,
+    easing: 'ease-in-out',
+  });
+
+  // Animated props for the value text
+  const animatedTextProps = useAnimatedProps(() => {
+    'worklet';
+    const currentValue = animatedValue.value;
+    return {
+      text: formatNumber(currentValue, format),
+    } as any;
+  });
 
   // Get trend color
   const trendColor = useMemo(
@@ -140,8 +155,8 @@ export const KPI = memo<KPIWidgetProps>(({
         {label}
       </Text>
 
-      {/* Value */}
-      <Text
+      {/* Value with animation */}
+      <AnimatedText
         style={[
           styles.value,
           {
@@ -150,9 +165,8 @@ export const KPI = memo<KPIWidgetProps>(({
             fontWeight: 'bold',
           },
         ]}
-      >
-        {displayValue}
-      </Text>
+        animatedProps={animatedTextProps}
+      />
 
       {/* Trend and Delta */}
       {(showTrend || showDelta) && (delta !== undefined || trend !== 'neutral') && (

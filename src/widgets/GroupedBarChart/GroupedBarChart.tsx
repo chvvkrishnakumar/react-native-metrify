@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedStyle, useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 import { Text } from '../../renderer-svg/primitives';
 import { GroupedBarChartData, GroupedBarChartLegacyProps, GroupedBarChartSimpleProps, GroupedBarChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToGroupedBarData } from '../../core/utils/dataTransform';
@@ -14,6 +17,7 @@ export const GroupedBarChart = memo<GroupedBarChartWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     barWidth = 20,
     groupSpacing = 32,
@@ -111,6 +115,18 @@ export const GroupedBarChart = memo<GroupedBarChartWidgetProps>((props) => {
     });
   }, [displayData, barWidth, barSpacing, groupSpacing, chartHeight, maxValue]);
 
+  // Count total bars for staggered animation
+  const totalBars = useMemo(() => {
+    return groups.reduce((sum, group) => sum + group.bars.length, 0);
+  }, [groups]);
+
+  // Staggered animation for all bars (Recharts style)
+  const barAnimations = useStaggeredAnimation(totalBars, {
+    enabled: animated,
+    duration: 800,
+    easing: 'ease-in-out',
+  });
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -121,31 +137,50 @@ export const GroupedBarChart = memo<GroupedBarChartWidgetProps>((props) => {
 
       <View style={styles.chartContainer}>
         <Svg width={chartWidth} height={chartHeight + (showValues ? 20 : 0)}>
-          {groups.map((group, groupIndex) => (
-            group.bars.map((bar, barIndex) => (
-              <React.Fragment key={`group-${groupIndex}-bar-${barIndex}`}>
-                <Rect
-                  x={bar.x}
-                  y={bar.y}
-                  width={bar.width}
-                  height={bar.height}
-                  fill={bar.color}
-                  rx={theme.radius.sm}
-                  ry={theme.radius.sm}
-                />
-                {showValues && (
-                  <Text
-                    x={bar.x + bar.width / 2}
-                    y={bar.y - 4}
+          {groups.map((group, groupIndex) => {
+            let barIndexOffset = 0;
+            for (let i = 0; i < groupIndex; i++) {
+              barIndexOffset += groups[i].bars.length;
+            }
+            
+            return group.bars.map((bar, barIndex) => {
+              const globalBarIndex = barIndexOffset + barIndex;
+              const animatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = barAnimations[globalBarIndex].value;
+                const animatedHeight = bar.height * progress;
+                const animatedY = bar.y + (bar.height - animatedHeight);
+                
+                return {
+                  y: animatedY,
+                  height: animatedHeight,
+                };
+              });
+
+              return (
+                <React.Fragment key={`group-${groupIndex}-bar-${barIndex}`}>
+                  <AnimatedRect
+                    x={bar.x}
+                    width={bar.width}
+                    fill={bar.color}
+                    rx={theme.radius.sm}
+                    ry={theme.radius.sm}
+                    animatedProps={animatedProps}
+                  />
+                  {showValues && (
+                    <Text
+                      x={bar.x + bar.width / 2}
+                      y={bar.y - 4}
                     text={bar.value.toString()}
                     fontSize={theme.fontScale.xs}
                     fill={theme.colors.textSecondary}
                     textAnchor="middle"
                   />
                 )}
-              </React.Fragment>
-            ))
-          ))}
+                </React.Fragment>
+              );
+            });
+          })}
         </Svg>
 
         {showLabels && (

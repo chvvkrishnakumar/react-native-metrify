@@ -2,8 +2,16 @@
 
 This guide shows both the **new Simple API** (Recharts-like, recommended) and the **Legacy API** (still supported) for all widgets.
 
-## 🆕 What's New in v0.1.0-beta.1
+## 🆕 What's New in v0.1.0-beta.2
 
+### Animation System Overhaul
+**All 24 widgets now have element-level animations!**
+- 📊 Bar Growth - Bars grow from baseline with stagger
+- ✏️ Path Drawing - Lines/arcs draw using stroke animation
+- ⭕ Scale/Pop - Elements scale from center
+- 🎬 Element Stagger - Items appear one by one
+
+### Simple API (v0.1.0-beta.1)
 **Simple API** - Just pass your raw data array and specify keys. No manual transformation!
 
 ```tsx
@@ -12,6 +20,28 @@ This guide shows both the **new Simple API** (Recharts-like, recommended) and th
 
 // New way (Simple API) - Pass raw data
 <BarChart data={[{ month: "Jan", sales: 10 }]} xKey="month" dataKey="sales" />
+```
+
+---
+
+## Common Props
+
+All widgets support these common props:
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | varies | Widget width in pixels |
+| `height` | `number` | varies | Widget height in pixels |
+| `animated` | `boolean` | `true` | Enable element-level animations |
+| `theme` | `Theme` | system | Custom theme override |
+| `testID` | `string` | - | Test identifier for testing |
+
+**Animation Examples:**
+```tsx
+<BarChart data={data} animated={true} />  // Bars grow with stagger
+<LineChart data={data} animated={true} /> // Lines draw across
+<RadarChart data={data} animated={true} /> // Polygon draws
+<PieChart data={data} animated={false} /> // No animation
 ```
 
 ---

@@ -4,7 +4,12 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Line as SvgLine, Circle } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
+const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 import { BoxPlotData, BoxPlotLegacyProps, BoxPlotSimpleProps, BoxPlotWidgetProps } from './types';
 import { isSimpleDataFormat, transformToBoxPlotData } from '../../core/utils/dataTransform';
 
@@ -13,6 +18,7 @@ export const BoxPlot = memo<BoxPlotWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showLabels = true,
     showOutliers = true,
@@ -24,6 +30,12 @@ export const BoxPlot = memo<BoxPlotWidgetProps>((props) => {
 
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 300);
+
+  const boxAnimations = useStaggeredAnimation(10, {
+    enabled: animated,
+    duration: 800,
+    easing: 'ease-out',
+  });
 
   // Transform data if using simple API
   const widgetData: BoxPlotData | null = useMemo(() => {
@@ -149,81 +161,123 @@ export const BoxPlot = memo<BoxPlotWidgetProps>((props) => {
 
         <View>
           <Svg width={chartWidth} height={chartHeight}>
-            {boxes.map((box, index) => (
-              <React.Fragment key={`box-${index}`}>
-                {/* Whisker lines (min to Q1, Q3 to max) */}
-                <SvgLine
-                  x1={box.centerX}
-                  y1={box.minY}
-                  x2={box.centerX}
-                  y2={box.q1Y}
-                  stroke={boxColor}
-                  strokeWidth={1}
-                />
-                <SvgLine
-                  x1={box.centerX}
-                  y1={box.q3Y}
-                  x2={box.centerX}
-                  y2={box.maxY}
-                  stroke={boxColor}
-                  strokeWidth={1}
-                />
+            {boxes.map((box, index) => {
+              const medianLineY = (box.q1Y + box.q3Y) / 2;
+              
+              // Animate whisker lines from center
+              const whiskerAnimatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = boxAnimations[index] ? boxAnimations[index].value : 1;
+                const lowerWhiskerLength = (box.q1Y - box.minY) * progress;
+                const upperWhiskerLength = (box.maxY - box.q3Y) * progress;
                 
-                {/* Min/Max caps */}
-                <SvgLine
-                  x1={box.centerX - boxWidth / 4}
-                  y1={box.minY}
-                  x2={box.centerX + boxWidth / 4}
-                  y2={box.minY}
-                  stroke={boxColor}
-                  strokeWidth={2}
-                />
-                <SvgLine
-                  x1={box.centerX - boxWidth / 4}
-                  y1={box.maxY}
-                  x2={box.centerX + boxWidth / 4}
-                  y2={box.maxY}
-                  stroke={boxColor}
-                  strokeWidth={2}
-                />
+                return {
+                  y1: box.q1Y - lowerWhiskerLength,
+                  y2: box.q3Y + upperWhiskerLength,
+                };
+              });
+
+              // Animate box height from center
+              const boxAnimatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = boxAnimations[index] ? boxAnimations[index].value : 1;
+                const animatedHeight = box.boxHeight * progress;
+                const centerY = box.boxY + box.boxHeight / 2;
+                const animatedY = centerY - animatedHeight / 2;
                 
-                {/* IQR Box (Q1 to Q3) */}
-                <Rect
-                  x={box.boxX}
-                  y={box.boxY}
-                  width={box.boxWidth}
-                  height={box.boxHeight}
-                  fill={boxColor}
-                  fillOpacity={0.3}
-                  stroke={boxColor}
-                  strokeWidth={2}
-                  rx={theme.radius.sm}
-                  ry={theme.radius.sm}
-                />
-                
-                {/* Median line */}
-                <SvgLine
-                  x1={box.boxX}
-                  y1={box.medianY}
-                  x2={box.boxX + box.boxWidth}
-                  y2={box.medianY}
-                  stroke={boxColor}
-                  strokeWidth={3}
-                />
-                
-                {/* Outliers */}
-                {showOutliers && box.outliers.map((outlier, oIndex) => (
-                  <Circle
-                    key={`outlier-${index}-${oIndex}`}
-                    cx={outlier.x}
-                    cy={outlier.y}
-                    r={3}
-                    fill={theme.colors.chartNegative}
-                    opacity={0.8}
+                return {
+                  y: animatedY,
+                  height: animatedHeight,
+                  opacity: progress * 0.3,
+                };
+              });
+
+              // Animate median line
+              const medianAnimatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = boxAnimations[index] ? boxAnimations[index].value : 1;
+                return {
+                  opacity: progress,
+                };
+              });
+
+              // Animate outliers
+              const outlierAnimatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = boxAnimations[index] ? boxAnimations[index].value : 1;
+                return {
+                  r: 3 * progress,
+                  opacity: progress * 0.8,
+                };
+              });
+
+              return (
+                <React.Fragment key={`box-${index}`}>
+                  {/* Whisker lines */}
+                  <AnimatedLine
+                    x1={box.centerX}
+                    x2={box.centerX}
+                    stroke={boxColor}
+                    strokeWidth={1}
+                    animatedProps={whiskerAnimatedProps}
                   />
-                ))}
-              </React.Fragment>
-            ))}
+                  
+                  {/* Min/Max caps */}
+                  <AnimatedLine
+                    x1={box.centerX - boxWidth / 4}
+                    y1={box.minY}
+                    x2={box.centerX + boxWidth / 4}
+                    y2={box.minY}
+                    stroke={boxColor}
+                    strokeWidth={2}
+                    animatedProps={medianAnimatedProps}
+                  />
+                  <AnimatedLine
+                    x1={box.centerX - boxWidth / 4}
+                    y1={box.maxY}
+                    x2={box.centerX + boxWidth / 4}
+                    y2={box.maxY}
+                    stroke={boxColor}
+                    strokeWidth={2}
+                    animatedProps={medianAnimatedProps}
+                  />
+                  
+                  {/* IQR Box (Q1 to Q3) */}
+                  <AnimatedRect
+                    x={box.boxX}
+                    width={box.boxWidth}
+                    fill={boxColor}
+                    stroke={boxColor}
+                    strokeWidth={2}
+                    rx={theme.radius.sm}
+                    ry={theme.radius.sm}
+                    animatedProps={boxAnimatedProps}
+                  />
+                  
+                  {/* Median line */}
+                  <AnimatedLine
+                    x1={box.boxX}
+                    y1={box.medianY}
+                    x2={box.boxX + box.boxWidth}
+                    y2={box.medianY}
+                    stroke={boxColor}
+                    strokeWidth={3}
+                    animatedProps={medianAnimatedProps}
+                  />
+                  
+                  {/* Outliers */}
+                  {showOutliers && box.outliers.map((outlier, oIndex) => (
+                    <AnimatedCircle
+                      key={`outlier-${index}-${oIndex}`}
+                      cx={outlier.x}
+                      cy={outlier.y}
+                      fill={theme.colors.chartNegative}
+                      animatedProps={outlierAnimatedProps}
+                    />
+                  ))}
+                </React.Fragment>
+              );
+            })}
           </Svg>
 
           {showLabels && (

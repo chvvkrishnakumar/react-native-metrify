@@ -30,6 +30,7 @@ export interface SunburstChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   showLabels?: boolean;
@@ -45,6 +46,7 @@ export interface SunburstChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   showLabels?: boolean;

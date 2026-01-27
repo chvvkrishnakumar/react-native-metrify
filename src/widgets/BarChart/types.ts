@@ -29,6 +29,7 @@ export interface BarChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   orientation?: BarOrientation;
   barWidth?: number;
@@ -48,6 +49,7 @@ export interface BarChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   orientation?: BarOrientation;
   barWidth?: number;

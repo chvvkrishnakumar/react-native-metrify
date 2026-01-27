@@ -34,6 +34,7 @@ export interface CandlestickChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   showXAxis?: boolean;
@@ -54,6 +55,7 @@ export interface CandlestickChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showXAxis?: boolean;
   showYAxis?: boolean;

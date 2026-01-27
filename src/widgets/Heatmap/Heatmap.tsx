@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 import { Text } from '../../renderer-svg/primitives';
 import { HeatmapData, HeatmapLegacyProps, HeatmapSimpleProps, HeatmapWidgetProps } from './types';
 import { isSimpleDataFormat, transformToHeatmapData } from '../../core/utils/dataTransform';
@@ -14,6 +17,7 @@ export const Heatmap = memo<HeatmapWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     cellSize = 30,
     cellSpacing = 2,
@@ -59,6 +63,14 @@ export const Heatmap = memo<HeatmapWidgetProps>((props) => {
   const { data, xLabels, yLabels, title } = widgetData;
   const padding = theme.spacing.md;
   const titleHeight = title ? theme.fontScale.md + theme.spacing.sm : 0;
+
+  // Calculate total cells for animation
+  const totalCells = xLabels.length * yLabels.length;
+  const cellAnimations = useStaggeredAnimation(totalCells, {
+    enabled: animated,
+    duration: 600,
+    easing: 'ease-out',
+  });
   const yLabelWidth = showLabels ? 60 : 0;
   const xLabelHeight = showLabels ? 30 : 0;
 
@@ -157,29 +169,40 @@ export const Heatmap = memo<HeatmapWidgetProps>((props) => {
 
         <View>
           <Svg width={chartWidth} height={chartHeight}>
-            {cells.map((cell, index) => (
-              <React.Fragment key={`cell-${index}`}>
-                <Rect
-                  x={cell.x}
-                  y={cell.y}
-                  width={cell.width}
-                  height={cell.height}
-                  fill={cell.color}
-                  rx={theme.radius.sm}
-                  ry={theme.radius.sm}
-                />
-                {showValues && (
-                  <Text
-                    x={cell.x + cell.width / 2}
-                    y={cell.y + cell.height / 2}
-                    text={cell.value.toFixed(0)}
-                    fontSize={theme.fontScale.xs}
-                    fill={theme.colors.text}
-                    textAnchor="middle"
+            {cells.map((cell, index) => {
+              const animatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = cellAnimations[index] ? cellAnimations[index].value : 1;
+                return {
+                  opacity: progress,
+                };
+              });
+
+              return (
+                <React.Fragment key={`cell-${index}`}>
+                  <AnimatedRect
+                    x={cell.x}
+                    y={cell.y}
+                    width={cell.width}
+                    height={cell.height}
+                    fill={cell.color}
+                    rx={theme.radius.sm}
+                    ry={theme.radius.sm}
+                    animatedProps={animatedProps}
                   />
-                )}
-              </React.Fragment>
-            ))}
+                  {showValues && (
+                    <Text
+                      x={cell.x + cell.width / 2}
+                      y={cell.y + cell.height / 2}
+                      text={cell.value.toFixed(0)}
+                      fontSize={theme.fontScale.xs}
+                      fill={theme.colors.text}
+                      textAnchor="middle"
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </Svg>
 
           {showLabels && (

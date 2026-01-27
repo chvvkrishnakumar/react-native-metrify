@@ -34,6 +34,7 @@ export interface MultiLineSparklineSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
 }
@@ -45,6 +46,7 @@ export interface MultiLineSparklineLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   style?: SparklineRenderStyle;
   showLegend?: boolean;

@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Line as SvgLine } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, useStaggeredAnimation } from '../../core';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 import { Text } from '../../renderer-svg/primitives';
 import { WaterfallChartData, WaterfallChartLegacyProps, WaterfallChartSimpleProps, WaterfallChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToWaterfallData } from '../../core/utils/dataTransform';
@@ -14,6 +17,7 @@ export const WaterfallChart = memo<WaterfallChartWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showValues = true,
     showLabels = true,
@@ -133,6 +137,12 @@ export const WaterfallChart = memo<WaterfallChartWidgetProps>((props) => {
     });
   }, [bars, chartHeight, minValue, valueRange, barWidth, colorPositive, colorNegative, colorTotal]);
 
+  const barAnimations = useStaggeredAnimation(renderedBars.length, {
+    enabled: animated,
+    duration: 700,
+    easing: 'ease-out',
+  });
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -175,29 +185,52 @@ export const WaterfallChart = memo<WaterfallChartWidgetProps>((props) => {
           })}
 
           {/* Bars */}
-          {renderedBars.map((bar, index) => (
-            <React.Fragment key={`bar-${index}`}>
-              <Rect
-                x={bar.x}
-                y={bar.y}
-                width={bar.width}
-                height={bar.height}
-                fill={bar.color}
-                rx={theme.radius.sm}
-                ry={theme.radius.sm}
-              />
-              {showValues && (
-                <Text
-                  x={bar.x + bar.width / 2}
-                  y={bar.y - 4}
-                  text={bar.value >= 0 ? `+${bar.value}` : `${bar.value}`}
-                  fontSize={theme.fontScale.xs}
-                  fill={theme.colors.text}
-                  textAnchor="middle"
+          {renderedBars.map((bar, index) => {
+            const barAnimatedProps = useAnimatedProps(() => {
+              'worklet';
+              const progress = barAnimations[index] ? barAnimations[index].value : 1;
+              const animatedHeight = bar.height * progress;
+              
+              // For positive values, grow from bottom (bar.endY)
+              // For negative values, grow from top (bar.y)
+              let animatedY;
+              if (bar.value >= 0) {
+                // Positive: grow upward from endY
+                animatedY = bar.endY - animatedHeight;
+              } else {
+                // Negative: grow downward from y
+                animatedY = bar.y;
+              }
+              
+              return {
+                y: animatedY,
+                height: animatedHeight,
+              };
+            });
+
+            return (
+              <React.Fragment key={`bar-${index}`}>
+                <AnimatedRect
+                  x={bar.x}
+                  width={bar.width}
+                  fill={bar.color}
+                  rx={theme.radius.sm}
+                  ry={theme.radius.sm}
+                  animatedProps={barAnimatedProps}
                 />
-              )}
-            </React.Fragment>
-          ))}
+                {showValues && (
+                  <Text
+                    x={bar.x + bar.width / 2}
+                    y={bar.y - 4}
+                    text={bar.value >= 0 ? `+${bar.value}` : `${bar.value}`}
+                    fontSize={theme.fontScale.xs}
+                    fill={theme.colors.text}
+                    textAnchor="middle"
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
         </Svg>
 
         {showLabels && (

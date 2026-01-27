@@ -5,16 +5,19 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
 import {
   useWidgetDimensions,
   useWidgetTheme,
   clamp,
   normalize,
+  useValueAnimation,
 } from '../../core';
 import { createRoundedRectPath, AnimatedPath } from '../../renderer-svg';
 import { ProgressWidgetProps } from './types';
 
-// AnimatedRect removed for Expo Go compatibility
+// Create AnimatedRect
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 /**
  * Progress Widget Component
@@ -86,8 +89,12 @@ export const Progress = memo<ProgressWidgetProps>(({
   const normalizedValue = clamp(value, 0, max);
   const percentage = max > 0 ? (normalizedValue / max) * 100 : 0;
 
-  // Calculate progress (no animation for Expo Go)
-  const progressValue = normalize(normalizedValue, 0, max);
+  // Animate the value
+  const animatedValue = useValueAnimation(normalizedValue, {
+    enabled: animated,
+    duration: 600,
+    easing: 'ease-in-out',
+  });
 
   // Calculate bar dimensions
   const barWidth = dimensions.width - theme.spacing.md * 2;
@@ -95,8 +102,14 @@ export const Progress = memo<ProgressWidgetProps>(({
     ? theme.spacing.md + theme.fontScale.sm + theme.spacing.xs
     : theme.spacing.md;
 
-  // Calculate bar width
-  const currentBarWidth = progressValue * barWidth;
+  // Animated props for progress bar
+  const animatedBarProps = useAnimatedProps(() => {
+    'worklet';
+    const progress = animatedValue.value / max;
+    return {
+      width: progress * barWidth,
+    };
+  });
 
   // Display text
   const displayValue = useMemo(() => {
@@ -148,15 +161,15 @@ export const Progress = memo<ProgressWidgetProps>(({
           ry={theme.radius.sm}
         />
 
-        {/* Foreground */}
-        <Rect
+        {/* Foreground with animation */}
+        <AnimatedRect
           x={0}
           y={0}
-          width={currentBarWidth}
           height={barHeight}
           fill={theme.colors.chartPrimary}
           rx={theme.radius.sm}
           ry={theme.radius.sm}
+          animatedProps={animatedBarProps}
         />
       </Svg>
 

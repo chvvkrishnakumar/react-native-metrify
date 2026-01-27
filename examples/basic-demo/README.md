@@ -1,6 +1,6 @@
 # Basic Demo - react-native-metrify
 
-Simple examples showcasing all widgets with the new **Simple API** (v0.1.0-beta.1).
+Simple examples showcasing all widgets with **Simple API** and **element-level animations**.
 
 ## Quick Start
 
@@ -21,7 +21,18 @@ npm install react-native-svg react-native-reanimated
 ### Documentation
 - `../API_REFERENCE.md` - Complete API reference for all widgets (both APIs)
 
-## What's New in Beta.1
+## What's New
+
+### v0.1.0-beta.2 - Animation System Overhaul
+**All 24 widgets now have element-level animations!**
+- 📊 Bar Growth (7 widgets) - Bars grow from baseline
+- ✏️ Path Drawing (8 widgets) - Lines/arcs draw with stroke animation
+- ⭕ Scale/Pop (3 widgets) - Elements scale from center
+- 🎬 Element Stagger (8 widgets) - Items appear one by one
+
+All animations run at 60 FPS on UI thread. Set `animated={false}` to disable.
+
+### v0.1.0-beta.1 - Simple API
 
 **Simple API** - Recharts-like, data-driven approach:
 

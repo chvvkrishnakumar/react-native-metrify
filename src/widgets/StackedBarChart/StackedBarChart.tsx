@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 import { StackedBarChartData, StackedBarChartLegacyProps, StackedBarChartSimpleProps, StackedBarChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToStackedBarData } from '../../core/utils/dataTransform';
 
@@ -13,6 +16,7 @@ export const StackedBarChart = memo<StackedBarChartWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     barWidth: customBarWidth,
     barSpacing = 8,
@@ -113,6 +117,12 @@ export const StackedBarChart = memo<StackedBarChartWidgetProps>((props) => {
     });
   }, [displayData, maxTotalValue, chartHeight, calculatedBarWidth, barSpacing]);
 
+  const barAnimations = useStaggeredAnimation(bars.length, {
+    enabled: animated,
+    duration: 600,
+    easing: 'ease-out',
+  });
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -124,18 +134,31 @@ export const StackedBarChart = memo<StackedBarChartWidgetProps>((props) => {
       <View style={styles.chartContainer}>
         <Svg width={chartWidth} height={chartHeight}>
           {bars.map((bar, barIndex) => (
-            bar.segments.map((segment, segmentIndex) => (
-              <Rect
-                key={`bar-${barIndex}-seg-${segmentIndex}`}
-                x={segment.x}
-                y={segment.y}
-                width={segment.width}
-                height={segment.height}
-                fill={segment.color}
-                rx={segmentIndex === bar.segments.length - 1 ? theme.radius.sm : 0}
-                ry={segmentIndex === bar.segments.length - 1 ? theme.radius.sm : 0}
-              />
-            ))
+            bar.segments.map((segment, segmentIndex) => {
+              const animatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = barAnimations[barIndex] ? barAnimations[barIndex].value : 1;
+                const animatedHeight = segment.height * progress;
+                const animatedY = segment.y + (segment.height - animatedHeight);
+                
+                return {
+                  y: animatedY,
+                  height: animatedHeight,
+                };
+              });
+
+              return (
+                <AnimatedRect
+                  key={`bar-${barIndex}-seg-${segmentIndex}`}
+                  x={segment.x}
+                  width={segment.width}
+                  fill={segment.color}
+                  rx={segmentIndex === bar.segments.length - 1 ? theme.radius.sm : 0}
+                  ry={segmentIndex === bar.segments.length - 1 ? theme.radius.sm : 0}
+                  animatedProps={animatedProps}
+                />
+              );
+            })
           ))}
         </Svg>
 

@@ -4,10 +4,14 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import Animated, { useAnimatedStyle, useAnimatedProps } from 'react-native-reanimated';
 import {
   useWidgetDimensions,
   useWidgetTheme,
+  useStaggeredAnimation,
 } from '../../core';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 import { createDonutArcPath, createFilledArcPath } from '../../renderer-svg';
 import { PieChartData, PieChartLegacyProps, PieChartSimpleProps, PieChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToPieData } from '../../core/utils/dataTransform';
@@ -20,6 +24,7 @@ export const PieChart = memo<PieChartWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     variant = 'pie',
     innerRadius = 0.5,
@@ -142,9 +147,18 @@ export const PieChart = memo<PieChartWidgetProps>((props) => {
         label: segment.label,
         value: segment.value,
         percentage,
+        startAngle,
+        endAngle,
       };
     });
   }, [segments, total, center, radius, innerR, variant]);
+
+  // Staggered animation for pie sectors (Recharts style - sectors sweep in)
+  const sectorAnimations = useStaggeredAnimation(pieSegments.length, {
+    enabled: animated,
+    duration: 800,
+    easing: 'ease-in-out',
+  });
 
   return (
     <View
@@ -180,13 +194,45 @@ export const PieChart = memo<PieChartWidgetProps>((props) => {
       {/* Chart */}
       <View style={styles.chartContainer}>
         <Svg width={chartSize} height={chartSize}>
-          {pieSegments.map((segment, index) => (
-            <Path
-              key={`segment-${index}`}
-              d={segment.path}
-              fill={segment.color}
-            />
-          ))}
+          {pieSegments.map((segment, index) => {
+            const animatedProps = useAnimatedProps(() => {
+              'worklet';
+              const progress = sectorAnimations[index].value;
+              // Animate from startAngle to endAngle (arc sweeps)
+              const startAngle = segment.startAngle;
+              const endAngle = startAngle + (segment.endAngle - startAngle) * progress;
+              
+              // Recreate the path with animated endAngle
+              const path = variant === 'donut'
+                ? createDonutArcPath({
+                    cx: center,
+                    cy: center,
+                    radius,
+                    innerRadius: innerR,
+                    startAngle,
+                    endAngle,
+                  })
+                : createFilledArcPath({
+                    cx: center,
+                    cy: center,
+                    radius,
+                    startAngle,
+                    endAngle,
+                  });
+              
+              return {
+                d: path,
+              };
+            });
+
+            return (
+              <AnimatedPath
+                key={`segment-${index}`}
+                fill={segment.color}
+                animatedProps={animatedProps}
+              />
+            );
+          })}
         </Svg>
       </View>
 
