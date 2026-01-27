@@ -35,6 +35,7 @@ export interface WaterfallChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
 }
@@ -47,6 +48,7 @@ export interface WaterfallChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showValues?: boolean;
   showLabels?: boolean;

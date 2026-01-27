@@ -42,6 +42,7 @@ export interface LineChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showXAxis?: boolean;
   showYAxis?: boolean;
@@ -63,6 +64,7 @@ export interface LineChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showXAxis?: boolean;
   showYAxis?: boolean;

@@ -19,6 +19,7 @@ export interface SparklineSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   style?: SparklineStyle;
@@ -34,6 +35,7 @@ export interface SparklineLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   style?: SparklineStyle;
   strokeWidth?: number;

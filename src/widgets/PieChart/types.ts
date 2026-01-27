@@ -29,6 +29,7 @@ export interface PieChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   variant?: PieChartVariant;
   innerRadius?: number;
@@ -47,6 +48,7 @@ export interface PieChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   variant?: PieChartVariant;
   innerRadius?: number;

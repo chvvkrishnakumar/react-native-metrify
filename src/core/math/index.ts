@@ -44,6 +44,7 @@ export function polarToCartesian(
   r: number,
   angle: number
 ): { x: number; y: number } {
+  'worklet';
   const angleInRadians = ((angle - 90) * Math.PI) / 180;
   return {
     x: cx + r * Math.cos(angleInRadians),

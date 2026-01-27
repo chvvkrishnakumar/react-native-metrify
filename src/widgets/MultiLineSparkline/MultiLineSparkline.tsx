@@ -4,11 +4,13 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg from 'react-native-svg';
+import { useAnimatedProps } from 'react-native-reanimated';
 import {
   useWidgetDimensions,
   useWidgetTheme,
   useWidgetPadding,
   useInnerDimensions,
+  useEntryAnimation,
 } from '../../core';
 import {
   createLinePath,
@@ -28,6 +30,7 @@ export const MultiLineSparkline = memo<MultiLineSparklineWidgetProps>((props) =>
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     style = 'line',
     showLegend = true,
@@ -39,6 +42,17 @@ export const MultiLineSparkline = memo<MultiLineSparklineWidgetProps>((props) =>
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 300, minHeight);
   const padding = useWidgetPadding(theme);
+
+  // Entry animation
+  const animationProgress = useEntryAnimation({
+    enabled: animated,
+    duration: 500,
+    easing: 'ease-in-out',
+  });
+
+  const animatedLineProps = useAnimatedProps(() => ({
+    opacity: animationProgress.value,
+  }));
 
   // Transform data if using simple API
   const widgetData: MultiLineSparklineData | null = useMemo(() => {
@@ -172,6 +186,7 @@ export const MultiLineSparkline = memo<MultiLineSparklineWidgetProps>((props) =>
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="transparent"
+            animatedProps={animatedLineProps}
           />
         ))}
       </Svg>

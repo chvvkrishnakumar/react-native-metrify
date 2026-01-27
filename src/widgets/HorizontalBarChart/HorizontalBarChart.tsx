@@ -4,15 +4,19 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
 import { HorizontalBarChartData, HorizontalBarChartLegacyProps, HorizontalBarChartSimpleProps, HorizontalBarChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToBarData } from '../../core/utils/dataTransform';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 export const HorizontalBarChart = memo<HorizontalBarChartWidgetProps>((props) => {
   const {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     barHeight = 24,
     barSpacing = 12,
@@ -78,6 +82,13 @@ export const HorizontalBarChart = memo<HorizontalBarChartWidgetProps>((props) =>
     });
   }, [displayData, maxValue, chartWidth, barHeight, barSpacing, theme.colors.chartPrimary]);
 
+  // Staggered animation for bars
+  const barAnimations = useStaggeredAnimation(bars.length, {
+    enabled: animated,
+    duration: 600,
+    easing: 'ease-in-out',
+  });
+
   const totalHeight = bars.length * (barHeight + barSpacing);
 
   return (
@@ -89,31 +100,41 @@ export const HorizontalBarChart = memo<HorizontalBarChartWidgetProps>((props) =>
       )}
 
       <View style={styles.chartContainer}>
-        {bars.map((bar, index) => (
-          <View key={`row-${index}`} style={styles.barRow}>
-            {showLabels && (
-              <View style={[styles.labelContainer, { width: labelWidth }]}>
-                <RNText style={[styles.label, { color: theme.colors.text, fontSize: theme.fontScale.sm }]} numberOfLines={1}>
-                  {bar.label}
-                </RNText>
-              </View>
-            )}
-            
-            <View style={{ width: chartWidth, height: barHeight }}>
-              <Svg width={chartWidth} height={barHeight}>
-                <Rect x={bar.x} y={0} width={bar.width} height={bar.height} fill={bar.color} rx={theme.radius.sm} ry={theme.radius.sm} />
-              </Svg>
-            </View>
+        {bars.map((bar, index) => {
+          const animatedProps = useAnimatedProps(() => {
+            'worklet';
+            const progress = barAnimations[index].value;
+            return {
+              width: bar.width * progress,
+            };
+          });
 
-            {showValues && (
-              <View style={[styles.valueContainer, { width: valueWidth }]}>
-                <RNText style={[styles.value, { color: theme.colors.textSecondary, fontSize: theme.fontScale.sm }]}>
-                  {bar.value}
-                </RNText>
+          return (
+            <View key={`row-${index}`} style={styles.barRow}>
+              {showLabels && (
+                <View style={[styles.labelContainer, { width: labelWidth }]}>
+                  <RNText style={[styles.label, { color: theme.colors.text, fontSize: theme.fontScale.sm }]} numberOfLines={1}>
+                    {bar.label}
+                  </RNText>
+                </View>
+              )}
+              
+              <View style={{ width: chartWidth, height: barHeight }}>
+                <Svg width={chartWidth} height={barHeight}>
+                  <AnimatedRect x={bar.x} y={0} height={bar.height} fill={bar.color} rx={theme.radius.sm} ry={theme.radius.sm} animatedProps={animatedProps} />
+                </Svg>
               </View>
-            )}
-          </View>
-        ))}
+
+              {showValues && (
+                <View style={[styles.valueContainer, { width: valueWidth }]}>
+                  <RNText style={[styles.value, { color: theme.colors.textSecondary, fontSize: theme.fontScale.sm }]}>
+                    {bar.value}
+                  </RNText>
+                </View>
+              )}
+            </View>
+          );
+        })}
       </View>
     </View>
   );

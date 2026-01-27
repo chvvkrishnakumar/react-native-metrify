@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, polarToCartesian } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, polarToCartesian, useStaggeredAnimation } from '../../core';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 import { createDonutArcPath } from '../../renderer-svg';
 import { SunburstChartWidgetProps, SunburstNode, SunburstChartData, SunburstChartLegacyProps, SunburstChartSimpleProps } from './types';
 import { isSimpleDataFormat, transformToSunburstData } from '../../core/utils/dataTransform';
@@ -14,6 +17,12 @@ interface SunburstSegment {
   color: string;
   label: string;
   level: number;
+  cx: number;
+  cy: number;
+  radius: number;
+  innerRadius: number;
+  startAngle: number;
+  endAngle: number;
 }
 
 function calculateSunburst(
@@ -59,6 +68,12 @@ function calculateSunburst(
       color,
       label: node.label,
       level,
+      cx,
+      cy,
+      radius: levelOuterRadius,
+      innerRadius: levelInnerRadius,
+      startAngle: currentAngle,
+      endAngle: nodeEndAngle,
     });
 
     // Recursively process children
@@ -88,6 +103,7 @@ export const SunburstChart = memo<SunburstChartWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showLabels = false,
     size: customSize,
@@ -155,6 +171,12 @@ export const SunburstChart = memo<SunburstChartWidgetProps>((props) => {
     return calculateSunburst(data, center, center, innerRadius, outerRadius, 0, 360, 0, colors);
   }, [data, center, innerRadius, outerRadius, colors]);
 
+  const segmentAnimations = useStaggeredAnimation(segments.length, {
+    enabled: animated,
+    duration: 900,
+    easing: 'ease-out',
+  });
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -165,16 +187,41 @@ export const SunburstChart = memo<SunburstChartWidgetProps>((props) => {
 
       <View style={styles.chartContainer}>
         <Svg width={chartSize} height={chartSize}>
-          {segments.map((segment, index) => (
-            <Path
-              key={`segment-${index}`}
-              d={segment.path}
-              fill={segment.color}
-              opacity={0.8 - segment.level * 0.1}
-              stroke={theme.colors.background}
-              strokeWidth={2}
-            />
-          ))}
+          {segments.map((segment, index) => {
+            const segmentAnimatedProps = useAnimatedProps(() => {
+              'worklet';
+              const progress = segmentAnimations[index] ? segmentAnimations[index].value : 1;
+              const baseOpacity = 0.8 - segment.level * 0.1;
+              
+              // Animate the arc sweep from startAngle
+              const animatedEndAngle = segment.startAngle + (segment.endAngle - segment.startAngle) * progress;
+              
+              // Recreate the path with animated angle
+              const animatedPath = createDonutArcPath({
+                cx: segment.cx,
+                cy: segment.cy,
+                radius: segment.radius,
+                innerRadius: segment.innerRadius,
+                startAngle: segment.startAngle,
+                endAngle: animatedEndAngle,
+              });
+              
+              return {
+                d: animatedPath,
+                opacity: baseOpacity,
+              };
+            });
+
+            return (
+              <AnimatedPath
+                key={`segment-${index}`}
+                fill={segment.color}
+                stroke={theme.colors.background}
+                strokeWidth={2}
+                animatedProps={segmentAnimatedProps}
+              />
+            );
+          })}
         </Svg>
       </View>
     </View>

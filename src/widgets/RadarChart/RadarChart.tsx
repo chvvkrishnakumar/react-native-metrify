@@ -2,18 +2,20 @@
  * RadarChart Widget - Multi-axis circular chart
  */
 import React, { memo, useMemo } from 'react';
-import { View, Text as RNText, StyleSheet } from 'react-native';
-import Svg, { Polygon, Line as SvgLine, Circle } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, polarToCartesian, normalize } from '../../core';
-import { Text } from '../../renderer-svg/primitives';
-import { RadarChartData, RadarChartLegacyProps, RadarChartSimpleProps, RadarChartWidgetProps } from './types';
+import { Text as RNText, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedProps, useAnimatedStyle } from 'react-native-reanimated';
+import Svg, { Circle, Line as SvgLine } from 'react-native-svg';
+import { normalize, polarToCartesian, useStaggeredAnimation, useWidgetDimensions, useWidgetTheme } from '../../core';
 import { isSimpleDataFormat, transformToRadarData } from '../../core/utils/dataTransform';
+import { Text, AnimatedPolygon } from '../../renderer-svg/primitives';
+import { RadarChartData, RadarChartLegacyProps, RadarChartSimpleProps, RadarChartWidgetProps } from './types';
 
 export const RadarChart = memo<RadarChartWidgetProps>((props) => {
   const {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showLabels = true,
     showLegend = true,
@@ -116,21 +118,39 @@ export const RadarChart = memo<RadarChartWidgetProps>((props) => {
   // Data polygons for each series
   const dataPolygons = useMemo(() => {
     return series.map(s => {
-      const points = s.data.map((point, index) => {
+      const coords = s.data.map((point, index) => {
         const angle = index * angleStep - Math.PI / 2;
         const normalizedValue = normalize(point.value, 0, maxValue);
         const r = normalizedValue * radius;
         const coord = polarToCartesian(center, center, r, (angle * 180) / Math.PI + 90);
-        return `${coord.x},${coord.y}`;
-      }).join(' ');
+        return coord;
+      });
+      
+      const points = coords.map(c => `${c.x},${c.y}`).join(' ');
+      
+      // Calculate perimeter for stroke animation
+      let perimeter = 0;
+      for (let i = 0; i < coords.length; i++) {
+        const next = (i + 1) % coords.length;
+        const dx = coords[next].x - coords[i].x;
+        const dy = coords[next].y - coords[i].y;
+        perimeter += Math.sqrt(dx * dx + dy * dy);
+      }
 
       return {
         points,
+        perimeter,
         color: s.color,
         label: s.label,
       };
     });
   }, [series, center, radius, maxValue, angleStep]);
+
+  const seriesAnimations = useStaggeredAnimation(dataPolygons.length, {
+    enabled: animated,
+    duration: 800,
+    easing: 'ease-out',
+  });
 
   const svgSize = chartSize + labelPadding * 2;
 
@@ -171,16 +191,31 @@ export const RadarChart = memo<RadarChartWidgetProps>((props) => {
           ))}
 
           {/* Data polygons */}
-          {dataPolygons.map((polygon, index) => (
-            <Polygon
-              key={`polygon-${index}`}
-              points={polygon.points}
-              fill={polygon.color}
-              fillOpacity={0.2}
-              stroke={polygon.color}
-              strokeWidth={2}
-            />
-          ))}
+          {dataPolygons.map((polygon, index) => {
+            const polygonAnimatedProps = useAnimatedProps(() => {
+              'worklet';
+              const progress = seriesAnimations[index] ? seriesAnimations[index].value : 1;
+              const dashOffset = polygon.perimeter * (1 - progress);
+              
+              return {
+                strokeDashoffset: dashOffset,
+                fillOpacity: progress * 0.2,
+                opacity: progress,
+              };
+            });
+
+            return (
+              <AnimatedPolygon
+                key={`polygon-${index}`}
+                points={polygon.points}
+                fill={polygon.color}
+                stroke={polygon.color}
+                strokeWidth={2}
+                strokeDasharray={`${polygon.perimeter}`}
+                animatedProps={polygonAnimatedProps}
+              />
+            );
+          })}
 
           {/* Axis labels */}
           {showLabels && axisLines.map((line, index) => (

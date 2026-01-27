@@ -31,6 +31,7 @@ export interface FunnelChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
 }
@@ -43,6 +44,7 @@ export interface FunnelChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showLabels?: boolean;
   showValues?: boolean;

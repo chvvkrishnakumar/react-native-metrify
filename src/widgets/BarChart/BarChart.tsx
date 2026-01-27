@@ -4,14 +4,19 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
 import {
   useWidgetDimensions,
   useWidgetTheme,
   normalize,
+  useStaggeredAnimation,
 } from '../../core';
 import { Text } from '../../renderer-svg/primitives';
 import { BarChartData, BarChartLegacyProps, BarChartSimpleProps, BarChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToBarData } from '../../core/utils/dataTransform';
+
+// Create AnimatedRect component
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 /**
  * BarChart Widget Component
@@ -22,6 +27,7 @@ export const BarChart = memo<BarChartWidgetProps>((props) => {
     height,
     loading = false,
     theme: themeOverride,
+    animated = true,
     orientation = 'vertical',
     barWidth: customBarWidth,
     barSpacing = 8,
@@ -128,6 +134,13 @@ export const BarChart = memo<BarChartWidgetProps>((props) => {
     });
   }, [displayData, maxValue, chartHeight, calculatedBarWidth, barSpacing, minBarHeight, theme.colors.chartPrimary]);
 
+  // Staggered animation for bars
+  const barAnimations = useStaggeredAnimation(bars.length, {
+    enabled: animated,
+    duration: 600,
+    easing: 'ease-in-out',
+  });
+
   return (
     <View
       style={[
@@ -161,19 +174,32 @@ export const BarChart = memo<BarChartWidgetProps>((props) => {
       {/* Chart */}
       <View style={styles.chartContainer}>
         <Svg width={chartWidth} height={chartHeight + valueHeight}>
-          {/* Bars */}
-          {bars.map((bar, index) => (
-            <Rect
-              key={`bar-${index}`}
-              x={bar.x}
-              y={bar.y}
-              width={bar.width}
-              height={bar.height}
-              fill={bar.color}
-              rx={theme.radius.sm}
-              ry={theme.radius.sm}
-            />
-          ))}
+          {/* Bars with animation */}
+          {bars.map((bar, index) => {
+            const animatedProps = useAnimatedProps(() => {
+              'worklet';
+              const progress = barAnimations[index].value;
+              const animatedHeight = bar.height * progress;
+              const animatedY = bar.y + (bar.height - animatedHeight);
+              
+              return {
+                y: animatedY,
+                height: animatedHeight,
+              };
+            });
+
+            return (
+              <AnimatedRect
+                key={`bar-${index}`}
+                x={bar.x}
+                width={bar.width}
+                fill={bar.color}
+                rx={theme.radius.sm}
+                ry={theme.radius.sm}
+                animatedProps={animatedProps}
+              />
+            );
+          })}
           
           {/* Values */}
           {showValues && bars.map((bar, index) => (

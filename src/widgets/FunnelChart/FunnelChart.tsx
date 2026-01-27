@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Polygon } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
+
+const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
 import { FunnelChartData, FunnelChartLegacyProps, FunnelChartSimpleProps, FunnelChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToFunnelData } from '../../core/utils/dataTransform';
 
@@ -13,6 +16,7 @@ export const FunnelChart = memo<FunnelChartWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showLabels = true,
     showValues = true,
@@ -61,6 +65,12 @@ export const FunnelChart = memo<FunnelChartWidgetProps>((props) => {
   const totalSpacing = (stages.length - 1) * stageSpacing;
   const stageHeight = (chartHeight - totalSpacing) / stages.length;
 
+  const stageAnimations = useStaggeredAnimation(stages.length, {
+    enabled: animated,
+    duration: 700,
+    easing: 'ease-out',
+  });
+
   const funnelStages = useMemo(() => {
     return stages.map((stage, index) => {
       const normalizedValue = normalize(stage.value, 0, maxValue);
@@ -108,14 +118,24 @@ export const FunnelChart = memo<FunnelChartWidgetProps>((props) => {
       <View style={styles.chartRow}>
         <View>
           <Svg width={chartWidth} height={chartHeight}>
-            {funnelStages.map((stage, index) => (
-              <Polygon
-                key={`stage-${index}`}
-                points={stage.points}
-                fill={stage.color}
-                opacity={0.9}
-              />
-            ))}
+            {funnelStages.map((stage, index) => {
+              const animatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = stageAnimations[index] ? stageAnimations[index].value : 1;
+                return {
+                  opacity: progress * 0.9,
+                };
+              });
+
+              return (
+                <AnimatedPolygon
+                  key={`stage-${index}`}
+                  points={stage.points}
+                  fill={stage.color}
+                  animatedProps={animatedProps}
+                />
+              );
+            })}
           </Svg>
         </View>
 

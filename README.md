@@ -4,22 +4,22 @@
 
 [![npm version](https://img.shields.io/npm/v/react-native-metrify.svg)](https://www.npmjs.com/package/react-native-metrify)
 
-## ⚠️ Alpha Release
+## ⚠️ Beta Release
 
-**This package is in early alpha.** The core functionality works, but the library is under active development.
+**This package is in beta.** The core functionality works, but the library is under active development.
 
 - ✅ 24 chart types implemented and working
 - ✅ TypeScript support with full type definitions
 - ✅ Responsive font sizing
+- ✅ Complete examples and demos available in `examples/basic-demo/`
 - ⚠️ Limited testing coverage
-- ⚠️ APIs may change in future versions
-- 🚧 Examples and demos coming soon
+- ⚠️ APIs may change in future versions (beta release)
 
 **Installation:**
 ```bash
-npm install react-native-metrify@alpha
+npm install react-native-metrify@beta
 # or
-yarn add react-native-metrify@alpha
+yarn add react-native-metrify@beta
 ```
 
 Feedback and contributions welcome!
@@ -31,7 +31,7 @@ A comprehensive, performance-focused chart library built specifically for React 
 
 - 🎨 **24+ Chart Types** - KPI, Gauge, Line, Bar, Pie, Area, Scatter, Heatmap, and more
 - 📱 **Mobile-First** - Optimized for small screens and touch interactions
-- ⚡ **High Performance** - UI thread animations with react-native-reanimated
+- ⚡ **High Performance** - Element-level animations on UI thread (60 FPS)
 - 🎭 **Theme Support** - Built-in light/dark themes with customization
 - 📦 **Zero Config** - Sensible defaults, minimal API surface
 - 🔧 **TypeScript** - Full type definitions included
@@ -41,7 +41,7 @@ A comprehensive, performance-focused chart library built specifically for React 
 ## 📦 Installation
 
 ```bash
-npm install react-native-metrify@alpha
+npm install react-native-metrify@beta
 ```
 
 ### Peer Dependencies
@@ -197,6 +197,62 @@ export default function Dashboard() {
   );
 }
 ```
+
+## ✨ Smooth Animations
+
+All widgets include beautiful, element-level animations powered by react-native-reanimated:
+
+```tsx
+// Animations enabled by default
+<Gauge
+  data={{ value: 75, max: 100, label: 'Progress' }}
+  animated={true}  // Arc sweeps smoothly from 0° to 75°
+/>
+
+<KPI
+  data={{ value: 1234, label: 'Revenue', format: 'currency' }}
+  animated={true}  // Numbers count up smoothly
+/>
+
+<BarChart
+  data={salesData}
+  xKey="month"
+  dataKey="sales"
+  animated={true}  // Bars grow from baseline with stagger
+/>
+
+<LineChart
+  data={trendData}
+  xKey="date"
+  dataKeys={['revenue', 'profit']}
+  animated={true}  // Lines draw across the chart
+/>
+
+<RadarChart
+  data={radarData}
+  animated={true}  // Polygon draws around perimeter
+/>
+
+<StackedBarChart
+  data={stackedData}
+  animated={true}  // Stacked segments grow together
+/>
+```
+
+### Animation Types
+All 24 widgets have element-level animations:
+- **📊 Bar Growth** (7 widgets) - Bars grow from 0 to full height with stagger
+- **✏️ Path Drawing** (8 widgets) - Lines/arcs draw using stroke animation
+- **⭕ Scale/Pop** (3 widgets) - Elements scale from center outward
+- **🎬 Element Stagger** (8 widgets) - Items appear one by one
+
+**Performance:**
+- ⚡ 60 FPS on UI thread (no JS thread blocking)
+- 🎯 Dynamic animations based on actual data
+- 🔄 Calculated perimeter/length for stroke animations
+- 🎨 Customizable duration and easing
+
+Disable animations anytime with `animated={false}`.
 
 ## 📊 Available Charts
 
@@ -357,9 +413,9 @@ The Simple API is available for **ALL** chart types:
 
 ### Full Documentation
 
-📖 **[Complete Simple API Reference →](./SIMPLE_API_REFERENCE.md)**
+📖 **[Complete Simple API Reference →](./examples/API_REFERENCE.md)**
 
-See all chart types with detailed examples in `SIMPLE_API_REFERENCE.md`
+See all chart types with detailed examples in `examples/API_REFERENCE.md`
 
 ### Benefits
 
@@ -543,7 +599,7 @@ Text automatically scales based on widget dimensions:
 ## 🎯 Design Philosophy
 
 - **Mobile-First**: Optimized for small screens and touch interactions
-- **Performance**: UI thread animations with react-native-reanimated
+- **Performance**: UI thread animations with react-native-reanimated for smooth 60 FPS animations
 - **Type-Safe**: Full TypeScript support with inference
 - **Zero Config**: Sensible defaults, minimal API surface
 

@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0-beta.2] - 2026-01-27
+
+**🎨 Animation System Overhaul**
+
+This release brings a complete animation upgrade to all 24 widgets, making them more dynamic and visually impressive.
+
+### 🚀 New Features
+- **All 24 widgets now have element-level animations** - No more basic fade in/out!
+- **New AnimatedPolygon primitive** - Consistent with AnimatedPath and AnimatedCircle for stroke drawing effects
+- **RadarChart drawing animation** - Polygon now draws like LineChart using strokeDasharray/strokeDashoffset
+- **11 widgets upgraded** with dynamic animations:
+  - **Histogram**: Bars grow from baseline with stagger
+  - **StackedBarChart**: Stacked bars grow up with stagger
+  - **WaterfallChart**: Bars grow up/down with stagger
+  - **CandlestickChart**: Candles grow from center price
+  - **FunnelChart**: Segments fade in with stagger
+  - **Heatmap**: Cells appear one by one
+  - **Treemap**: Rectangles fade in with stagger
+  - **BoxPlot**: Boxes scale + whiskers extend
+  - **SankeyDiagram**: Flow paths and nodes animate
+  - **SunburstChart**: Arc segments sweep clockwise
+  - **RadarChart**: Polygon draws with stroke animation
+
+### 🎬 Animation Types by Widget
+- **Bar Growth** (7 widgets): BarChart, GroupedBarChart, HorizontalBarChart, StackedBarChart, WaterfallChart, Histogram
+- **Path/Stroke Drawing** (8 widgets): LineChart, AreaChart, Sparkline, MultiLineSparkline, Gauge, Progress, PieChart, RadarChart
+- **Scale/Pop** (3 widgets): ScatterPlot, BubbleChart, RadarChart
+- **Element Stagger** (8 widgets): FunnelChart, Heatmap, Treemap, CandlestickChart, BoxPlot, SankeyDiagram, SunburstChart, KPI
+
+### 🐛 Bug Fixes
+- Fixed animation count bugs in 9 widgets (was using hardcoded values like 10, 20, 50)
+- Fixed RadarChart to use actual `dataPolygons.length` instead of hardcoded 10
+- Fixed worklet closure issues in complex animations
+- All widgets now properly calculate perimeter/length for stroke animations
+
+### 🔧 Technical Improvements
+- Moved `useStaggeredAnimation` calls to after data calculation
+- All animations now use actual element counts dynamically
+- Removed hardcoded animation counts that caused rendering issues
+- Created reusable AnimatedPolygon primitive in renderer-svg
+- Consistent animation architecture across all widget types
+
+### ⚠️ Breaking Changes
+- None! All changes are backwards compatible.
+
+---
+
 ## [0.1.0-beta.1] - 2026-01-23
 
 **🎉 Beta Release - Significant API Improvements**

@@ -25,6 +25,7 @@ export interface HistogramSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
 }
@@ -36,6 +37,7 @@ export interface HistogramLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showXAxis?: boolean;
   showYAxis?: boolean;

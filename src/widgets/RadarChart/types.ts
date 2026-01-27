@@ -40,6 +40,7 @@ export interface RadarChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
 }
@@ -52,6 +53,7 @@ export interface RadarChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showLabels?: boolean;
   showLegend?: boolean;

@@ -30,6 +30,7 @@ export interface TreemapSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   showLabels?: boolean;
@@ -46,6 +47,7 @@ export interface TreemapLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   showLabels?: boolean;

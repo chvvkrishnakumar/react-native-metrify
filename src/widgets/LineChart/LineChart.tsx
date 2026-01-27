@@ -4,12 +4,15 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Line as SvgLine, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { useAnimatedProps } from 'react-native-reanimated';
 import {
   useWidgetDimensions,
   useWidgetTheme,
   normalize,
   formatTimeLabel,
   reduceLabels,
+  usePathDrawAnimation,
+  estimatePathLength,
 } from '../../core';
 import {
   createLinePath,
@@ -29,6 +32,7 @@ export const LineChart = memo<LineChartWidgetProps>((props) => {
     height,
     loading = false,
     theme: themeOverride,
+    animated = true,
     showXAxis = true,
     showYAxis = true,
     showGrid = true,
@@ -186,6 +190,20 @@ export const LineChart = memo<LineChartWidgetProps>((props) => {
     });
   }, [series, chartWidth, chartHeight, globalMinY, globalMaxY, filled]);
 
+  // Calculate estimated path length for drawing animation
+  const estimatedLength = useMemo(() => {
+    if (!series || series.length === 0) return 0;
+    const firstSeriesLength = series[0]?.data.length || 0;
+    return estimatePathLength(firstSeriesLength, chartWidth, chartHeight);
+  }, [series, chartWidth, chartHeight]);
+
+  // True path drawing animation (Recharts style - line draws from left to right)
+  const { dashArray, dashOffset } = usePathDrawAnimation(estimatedLength, {
+    enabled: animated,
+    duration: 1200,
+    easing: 'ease-in-out',
+  });
+
   return (
     <View
       style={[
@@ -276,28 +294,48 @@ export const LineChart = memo<LineChartWidgetProps>((props) => {
             ))}
 
             {/* Area fills (render first, behind lines) */}
-            {filled && seriesPaths.map((series, index) => (
-              <AnimatedPath
-                key={`area-${index}`}
-                d={series.areaPath}
-                fill={showGradient ? `url(#gradient-${index})` : series.color}
-                opacity={showGradient ? 1 : 0.3}
-                stroke="transparent"
-              />
-            ))}
+            {filled && seriesPaths.map((series, index) => {
+              const areaAnimatedProps = useAnimatedProps(() => {
+                'worklet';
+                return {
+                  opacity: 1 - (dashOffset.value / dashArray),
+                };
+              });
+              
+              return (
+                <AnimatedPath
+                  key={`area-${index}`}
+                  d={series.areaPath}
+                  fill={showGradient ? `url(#gradient-${index})` : series.color}
+                  stroke="transparent"
+                  animatedProps={areaAnimatedProps}
+                />
+              );
+            })}
 
-            {/* Line series (render on top of areas) */}
-            {seriesPaths.map((series, index) => (
-              <AnimatedPath
-                key={`line-${index}`}
-                d={series.linePath}
-                stroke={series.color}
-                strokeWidth={series.strokeWidth}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="transparent"
-              />
-            ))}
+            {/* Line series (render on top of areas) with TRUE PATH DRAWING */}
+            {seriesPaths.map((series, index) => {
+              const lineAnimatedProps = useAnimatedProps(() => {
+                'worklet';
+                return {
+                  strokeDasharray: dashArray,
+                  strokeDashoffset: dashOffset.value,
+                };
+              });
+
+              return (
+                <AnimatedPath
+                  key={`line-${index}`}
+                  d={series.linePath}
+                  stroke={series.color}
+                  strokeWidth={series.strokeWidth}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="transparent"
+                  animatedProps={lineAnimatedProps}
+                />
+              );
+            })}
           </Svg>
 
           {/* X-Axis */}

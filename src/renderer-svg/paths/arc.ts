@@ -18,6 +18,7 @@ export interface ArcPathConfig {
  * @returns SVG path string
  */
 export function createArcPath(config: ArcPathConfig): string {
+  'worklet';
   const { cx, cy, radius, startAngle, endAngle } = config;
   
   const start = polarToCartesian(cx, cy, radius, endAngle);
@@ -44,6 +45,7 @@ export function createArcPath(config: ArcPathConfig): string {
  * Creates a filled arc (pie slice) path
  */
 export function createFilledArcPath(config: ArcPathConfig): string {
+  'worklet';
   const { cx, cy } = config;
   const arcPath = createArcPath(config);
   
@@ -56,6 +58,7 @@ export function createFilledArcPath(config: ArcPathConfig): string {
 export function createDonutArcPath(
   config: ArcPathConfig & { innerRadius: number }
 ): string {
+  'worklet';
   const { cx, cy, radius, innerRadius, startAngle, endAngle } = config;
   
   const outerStart = polarToCartesian(cx, cy, radius, endAngle);

@@ -36,6 +36,7 @@ export interface SankeyDiagramSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   nodeWidth?: number;
@@ -53,6 +54,7 @@ export interface SankeyDiagramLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   nodeWidth?: number;

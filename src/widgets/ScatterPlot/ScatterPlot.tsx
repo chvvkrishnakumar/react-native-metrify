@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Circle, Line as SvgLine } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize } from '../../core';
+import Animated, { useAnimatedStyle, useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, useStaggeredAnimation } from '../../core';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 import { ScatterPlotData, ScatterPlotLegacyProps, ScatterPlotSimpleProps, ScatterPlotWidgetProps } from './types';
 import { isSimpleDataFormat, transformToScatterData } from '../../core/utils/dataTransform';
 
@@ -13,6 +16,7 @@ export const ScatterPlot = memo<ScatterPlotWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showXAxis = true,
     showYAxis = true,
@@ -114,6 +118,18 @@ export const ScatterPlot = memo<ScatterPlotWidgetProps>((props) => {
     });
   }, [series, chartWidth, chartHeight, globalMinX, globalMaxX, globalMinY, globalMaxY, defaultPointSize]);
 
+  // Calculate total points for staggered animation
+  const totalPoints = useMemo(() => {
+    return seriesPoints.reduce((sum, s) => sum + s.points.length, 0);
+  }, [seriesPoints]);
+
+  // Staggered scale animation for points (Recharts style)
+  const pointAnimations = useStaggeredAnimation(totalPoints, {
+    enabled: animated,
+    duration: 800,
+    easing: 'ease-in-out',
+  });
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -142,18 +158,35 @@ export const ScatterPlot = memo<ScatterPlotWidgetProps>((props) => {
               <SvgLine key={`grid-x-${index}`} x1={label.x} y1={0} x2={label.x} y2={chartHeight} stroke={theme.colors.borderLight} strokeWidth={1} />
             ))}
 
-            {seriesPoints.map((series, seriesIndex) => (
-              series.points.map((point, pointIndex) => (
-                <Circle
-                  key={`series-${seriesIndex}-point-${pointIndex}`}
-                  cx={point.cx}
-                  cy={point.cy}
-                  r={series.pointSize}
-                  fill={series.color}
-                  opacity={1}
-                />
-              ))
-            ))}
+            {seriesPoints.map((series, seriesIndex) => {
+              // Calculate the global point index for staggered animation
+              let globalPointIndex = 0;
+              for (let i = 0; i < seriesIndex; i++) {
+                globalPointIndex += seriesPoints[i].points.length;
+              }
+              
+              return series.points.map((point, pointIndex) => {
+                const currentIndex = globalPointIndex + pointIndex;
+                const animatedProps = useAnimatedProps(() => {
+                  'worklet';
+                  const scale = pointAnimations[currentIndex].value;
+                  return {
+                    r: series.pointSize * scale,
+                    opacity: scale,
+                  };
+                });
+
+                return (
+                  <AnimatedCircle
+                    key={`series-${seriesIndex}-point-${pointIndex}`}
+                    cx={point.cx}
+                    cy={point.cy}
+                    fill={series.color}
+                    animatedProps={animatedProps}
+                  />
+                );
+              });
+            })}
           </Svg>
         </View>
       </View>

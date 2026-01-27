@@ -32,6 +32,7 @@ export interface HorizontalBarChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
 }
@@ -44,6 +45,7 @@ export interface HorizontalBarChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   barHeight?: number;
   barSpacing?: number;

@@ -4,7 +4,11 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Path } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, useStaggeredAnimation } from '../../core';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 import { Text } from '../../renderer-svg/primitives';
 import { SankeyDiagramWidgetProps, SankeyDiagramData, SankeyDiagramLegacyProps, SankeyDiagramSimpleProps } from './types';
 import { isSimpleDataFormat, transformToSankeyData } from '../../core/utils/dataTransform';
@@ -32,6 +36,7 @@ export const SankeyDiagram = memo<SankeyDiagramWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     nodeWidth = 20,
     nodePadding = 20,
@@ -42,6 +47,7 @@ export const SankeyDiagram = memo<SankeyDiagramWidgetProps>((props) => {
 
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 400, 300);
+
 
   // Transform data if using simple API
   const widgetData: SankeyDiagramData | null = useMemo(() => {
@@ -90,7 +96,7 @@ export const SankeyDiagram = memo<SankeyDiagramWidgetProps>((props) => {
   ];
 
   // Simple Sankey layout algorithm
-  const { layoutNodes, layoutLinks } = useMemo(() => {
+  const layout = useMemo(() => {
     // Calculate node values (sum of inputs/outputs)
     const nodeValues = new Map<string, number>();
     nodes.forEach(node => nodeValues.set(node.id, 0));
@@ -212,6 +218,20 @@ export const SankeyDiagram = memo<SankeyDiagramWidgetProps>((props) => {
     return { layoutNodes: positionedNodes, layoutLinks: positionedLinks };
   }, [nodes, links, chartWidth, chartHeight, nodeWidth, nodePadding, labelWidth, defaultColors]);
 
+  const { layoutNodes, layoutLinks } = layout;
+
+  const linkAnimations = useStaggeredAnimation(layoutLinks.length, {
+    enabled: animated,
+    duration: 1000,
+    easing: 'ease-out',
+  });
+  
+  const nodeAnimations = useStaggeredAnimation(layoutNodes.length, {
+    enabled: animated,
+    duration: 800,
+    easing: 'ease-out',
+  });
+
   // Create curved paths for links
   function createLinkPath(link: LayoutLink, linkHeight: number): string {
     const sourceX = link.source.x + nodeWidth;
@@ -239,28 +259,51 @@ export const SankeyDiagram = memo<SankeyDiagramWidgetProps>((props) => {
         {/* Links */}
         {layoutLinks.map((link, index) => {
           const linkHeight = (link.value / link.source.totalValue) * link.source.height;
+          
+          const pathAnimatedProps = useAnimatedProps(() => {
+            'worklet';
+            const progress = linkAnimations[index] ? linkAnimations[index].value : 1;
+            return {
+              opacity: progress * 0.4,
+            };
+          });
+          
           return (
-            <Path
+            <AnimatedPath
               key={`link-${index}`}
               d={createLinkPath(link, linkHeight)}
               fill={link.color}
-              opacity={0.4}
+              animatedProps={pathAnimatedProps}
             />
           );
         })}
 
         {/* Nodes */}
-        {layoutNodes.map((node, index) => (
-          <React.Fragment key={`node-${index}`}>
-            <Rect
-              x={node.x}
-              y={node.y}
-              width={nodeWidth}
-              height={node.height}
-              fill={theme.colors.chartPrimary}
-              rx={theme.radius.sm}
-              ry={theme.radius.sm}
-            />
+        {layoutNodes.map((node, index) => {
+          const nodeAnimatedProps = useAnimatedProps(() => {
+            'worklet';
+            const progress = nodeAnimations[index] ? nodeAnimations[index].value : 1;
+            const animatedHeight = node.height * progress;
+            const centerY = node.y + node.height / 2;
+            const animatedY = centerY - animatedHeight / 2;
+            
+            return {
+              y: animatedY,
+              height: animatedHeight,
+              opacity: progress,
+            };
+          });
+          
+          return (
+            <React.Fragment key={`node-${index}`}>
+              <AnimatedRect
+                x={node.x}
+                width={nodeWidth}
+                fill={theme.colors.chartPrimary}
+                rx={theme.radius.sm}
+                ry={theme.radius.sm}
+                animatedProps={nodeAnimatedProps}
+              />
             {showLabels && (
               <Text
                 x={node.x < chartWidth / 2 ? node.x - 5 : node.x + nodeWidth + 5}
@@ -272,7 +315,8 @@ export const SankeyDiagram = memo<SankeyDiagramWidgetProps>((props) => {
               />
             )}
           </React.Fragment>
-        ))}
+          );
+        })}
       </Svg>
     </View>
   );

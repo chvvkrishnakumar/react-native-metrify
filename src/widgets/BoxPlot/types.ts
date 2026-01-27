@@ -44,6 +44,7 @@ export interface BoxPlotSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
 }
@@ -56,6 +57,7 @@ export interface BoxPlotLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   showLabels?: boolean;
   showOutliers?: boolean;

@@ -34,6 +34,7 @@ export interface GroupedBarChartSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   barWidth?: number;
   groupSpacing?: number;
@@ -53,6 +54,7 @@ export interface GroupedBarChartLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   barWidth?: number;
   groupSpacing?: number;

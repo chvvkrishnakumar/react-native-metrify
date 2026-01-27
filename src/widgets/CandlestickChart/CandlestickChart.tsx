@@ -4,7 +4,11 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect, Line as SvgLine } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme, normalize, formatTimeLabel, reduceLabels } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, normalize, formatTimeLabel, reduceLabels, useStaggeredAnimation } from '../../core';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
+const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
 import { CandlestickChartData, CandlestickChartLegacyProps, CandlestickChartSimpleProps, CandlestickChartWidgetProps } from './types';
 import { isSimpleDataFormat, transformToCandlestickData } from '../../core/utils/dataTransform';
 
@@ -13,6 +17,7 @@ export const CandlestickChart = memo<CandlestickChartWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showXAxis = true,
     showYAxis = true,
@@ -27,6 +32,12 @@ export const CandlestickChart = memo<CandlestickChartWidgetProps>((props) => {
 
   const theme = useWidgetTheme(themeOverride);
   const dimensions = useWidgetDimensions(width, height, 350, 300);
+
+  const candleAnimations = useStaggeredAnimation(maxCandles, {
+    enabled: animated,
+    duration: 800,
+    easing: 'ease-out',
+  });
 
   // Transform data if using simple API
   const widgetData: CandlestickChartData | null = useMemo(() => {
@@ -160,30 +171,57 @@ export const CandlestickChart = memo<CandlestickChartWidgetProps>((props) => {
               <SvgLine key={`grid-${index}`} x1={0} y1={label.y} x2={chartWidth} y2={label.y} stroke={theme.colors.borderLight} strokeWidth={1} />
             ))}
 
-            {candles.map((candle, index) => (
-              <React.Fragment key={`candle-${index}`}>
-                {/* Wick (high-low line) */}
-                <SvgLine
-                  x1={candle.wickX}
-                  y1={candle.wickTop}
-                  x2={candle.wickX}
-                  y2={candle.wickBottom}
-                  stroke={candle.color}
-                  strokeWidth={1}
-                />
+            {candles.map((candle, index) => {
+              const centerY = (candle.wickTop + candle.wickBottom) / 2;
+              
+              const wickAnimatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = candleAnimations[index] ? candleAnimations[index].value : 1;
+                const wickHeight = (candle.wickBottom - candle.wickTop) * progress;
+                const animatedY1 = centerY - wickHeight / 2;
+                const animatedY2 = centerY + wickHeight / 2;
                 
-                {/* Body */}
-                <Rect
-                  x={candle.bodyX}
-                  y={candle.bodyY}
-                  width={candle.bodyWidth}
-                  height={candle.bodyHeight}
-                  fill={candle.color}
-                  stroke={candle.color}
-                  strokeWidth={1}
-                />
-              </React.Fragment>
-            ))}
+                return {
+                  y1: animatedY1,
+                  y2: animatedY2,
+                };
+              });
+
+              const bodyAnimatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = candleAnimations[index] ? candleAnimations[index].value : 1;
+                const animatedHeight = candle.bodyHeight * progress;
+                const animatedY = candle.bodyY + (candle.bodyHeight - animatedHeight) / 2;
+                
+                return {
+                  y: animatedY,
+                  height: animatedHeight,
+                };
+              });
+
+              return (
+                <React.Fragment key={`candle-${index}`}>
+                  {/* Wick (high-low line) */}
+                  <AnimatedLine
+                    x1={candle.wickX}
+                    x2={candle.wickX}
+                    stroke={candle.color}
+                    strokeWidth={1}
+                    animatedProps={wickAnimatedProps}
+                  />
+                  
+                  {/* Body */}
+                  <AnimatedRect
+                    x={candle.bodyX}
+                    width={candle.bodyWidth}
+                    fill={candle.color}
+                    stroke={candle.color}
+                    strokeWidth={1}
+                    animatedProps={bodyAnimatedProps}
+                  />
+                </React.Fragment>
+              );
+            })}
           </Svg>
 
           {showXAxis && (

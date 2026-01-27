@@ -64,3 +64,8 @@ export function useInnerDimensions(
     [width, height, padding.horizontal, padding.vertical]
   );
 }
+
+/**
+ * Export animation hooks
+ */
+export * from './useChartAnimation';

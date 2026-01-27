@@ -4,7 +4,10 @@
 import React, { memo, useMemo } from 'react';
 import { View, Text as RNText, StyleSheet } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
-import { useWidgetDimensions, useWidgetTheme } from '../../core';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import { useWidgetDimensions, useWidgetTheme, useStaggeredAnimation } from '../../core';
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 import { Text } from '../../renderer-svg/primitives';
 import { TreemapWidgetProps, TreemapNode, TreemapData, TreemapLegacyProps, TreemapSimpleProps } from './types';
 import { isSimpleDataFormat, transformToTreemapData } from '../../core/utils/dataTransform';
@@ -85,6 +88,7 @@ export const Treemap = memo<TreemapWidgetProps>((props) => {
     width,
     height,
     loading = false,
+    animated = true,
     theme: themeOverride,
     showLabels = true,
     showValues = true,
@@ -147,6 +151,12 @@ export const Treemap = memo<TreemapWidgetProps>((props) => {
     return squarify(data, 0, 0, chartWidth, chartHeight, colors);
   }, [data, chartWidth, chartHeight, colors]);
 
+  const nodeAnimations = useStaggeredAnimation(rectangles.length, {
+    enabled: animated,
+    duration: 700,
+    easing: 'ease-out',
+  });
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding: chartPadding }]} testID={testID}>
       {title && (
@@ -156,18 +166,27 @@ export const Treemap = memo<TreemapWidgetProps>((props) => {
       )}
 
       <Svg width={chartWidth} height={chartHeight}>
-        {rectangles.map((rect, index) => (
-          <React.Fragment key={`rect-${index}`}>
-            <Rect
-              x={rect.x + padding}
-              y={rect.y + padding}
-              width={Math.max(0, rect.width - padding * 2)}
-              height={Math.max(0, rect.height - padding * 2)}
-              fill={rect.color}
-              opacity={0.8}
-              rx={theme.radius.sm}
-              ry={theme.radius.sm}
-            />
+        {rectangles.map((rect, index) => {
+          const animatedProps = useAnimatedProps(() => {
+            'worklet';
+            const progress = nodeAnimations[index] ? nodeAnimations[index].value : 1;
+            return {
+              opacity: progress * 0.8,
+            };
+          });
+
+          return (
+            <React.Fragment key={`rect-${index}`}>
+              <AnimatedRect
+                x={rect.x + padding}
+                y={rect.y + padding}
+                width={Math.max(0, rect.width - padding * 2)}
+                height={Math.max(0, rect.height - padding * 2)}
+                fill={rect.color}
+                rx={theme.radius.sm}
+                ry={theme.radius.sm}
+                animatedProps={animatedProps}
+              />
             {showLabels && rect.width > 40 && rect.height > 30 && (
               <Text
                 x={rect.x + rect.width / 2}
@@ -191,7 +210,8 @@ export const Treemap = memo<TreemapWidgetProps>((props) => {
               />
             )}
           </React.Fragment>
-        ))}
+          );
+        })}
       </Svg>
     </View>
   );

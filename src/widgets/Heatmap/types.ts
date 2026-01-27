@@ -29,6 +29,7 @@ export interface HeatmapSimpleProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   testID?: string;
   cellSize?: number;
@@ -48,6 +49,7 @@ export interface HeatmapLegacyProps {
   width?: number;
   height?: number;
   loading?: boolean;
+  animated?: boolean;
   theme?: any;
   cellSize?: number;
   cellSpacing?: number;
