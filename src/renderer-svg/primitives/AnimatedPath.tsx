@@ -5,6 +5,7 @@
 import React, { memo } from 'react';
 import Animated, { AnimatedProps } from 'react-native-reanimated';
 import { Path, PathProps } from 'react-native-svg';
+import { safeNumber } from '../../core/math';
 
 const AnimatedSVGPath = Animated.createAnimatedComponent(Path);
 
@@ -23,7 +24,7 @@ export interface AnimatedPathProps {
 }
 
 /**
- * Memoized animated path component
+ * Memoized animated path component with NaN protection
  * Supports both static props and animated props via reanimated
  * Now with strokeDasharray/strokeDashoffset for true path drawing
  */
@@ -40,17 +41,22 @@ export const AnimatedPath = memo<AnimatedPathProps>(({
   testID,
   animatedProps,
 }) => {
+  // CRITICAL: Prevent NaN values from causing native crashes
+  const safeStrokeWidth = safeNumber(strokeWidth, 1);
+  const safeOpacity = safeNumber(opacity, 1);
+  const safeStrokeDashoffset = strokeDashoffset !== undefined ? safeNumber(strokeDashoffset, 0) : undefined;
+  
   return (
     <AnimatedSVGPath
       d={d}
       stroke={stroke}
-      strokeWidth={strokeWidth}
+      strokeWidth={safeStrokeWidth}
       fill={fill}
-      opacity={opacity}
+      opacity={safeOpacity}
       strokeLinecap={strokeLinecap}
       strokeLinejoin={strokeLinejoin}
       strokeDasharray={strokeDasharray}
-      strokeDashoffset={strokeDashoffset}
+      strokeDashoffset={safeStrokeDashoffset}
       testID={testID}
       animatedProps={animatedProps}
     />

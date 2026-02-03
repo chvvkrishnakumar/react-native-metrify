@@ -136,6 +136,37 @@ export const BubbleChart = memo<BubbleChartWidgetProps>((props) => {
     easing: 'ease-in-out',
   });
 
+  // Create AnimatedBubble component to properly handle hooks
+  const AnimatedBubble = memo<{
+    bubble: any;
+    seriesIndex: number;
+    bubbleIndex: number;
+    progress: Animated.SharedValue<number>;
+    color: string;
+  }>(({ bubble, seriesIndex, bubbleIndex, progress, color }) => {
+    const animatedProps = useAnimatedProps(() => {
+      'worklet';
+      const scale = progress.value;
+      return {
+        r: bubble.r * scale,
+        opacity: 0.6 * scale,
+      };
+    });
+
+    return (
+      <AnimatedCircle
+        cx={bubble.cx}
+        cy={bubble.cy}
+        fill={color}
+        stroke={color}
+        strokeWidth={2}
+        animatedProps={animatedProps}
+      />
+    );
+  });
+
+  AnimatedBubble.displayName = 'AnimatedBubble';
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -172,24 +203,14 @@ export const BubbleChart = memo<BubbleChartWidgetProps>((props) => {
               
               return series.bubbles.map((bubble, bubbleIndex) => {
                 const currentIndex = globalBubbleIndex + bubbleIndex;
-                const animatedProps = useAnimatedProps(() => {
-                  'worklet';
-                  const scale = bubbleAnimations[currentIndex].value;
-                  return {
-                    r: bubble.r * scale,
-                    opacity: 0.6 * scale,
-                  };
-                });
-
                 return (
-                  <AnimatedCircle
+                  <AnimatedBubble
                     key={`series-${seriesIndex}-bubble-${bubbleIndex}`}
-                    cx={bubble.cx}
-                    cy={bubble.cy}
-                    fill={series.color}
-                    stroke={series.color}
-                    strokeWidth={2}
-                    animatedProps={animatedProps}
+                    bubble={bubble}
+                    seriesIndex={seriesIndex}
+                    bubbleIndex={bubbleIndex}
+                    progress={bubbleAnimations[currentIndex] || { value: 1 } as any}
+                    color={series.color}
                   />
                 );
               });

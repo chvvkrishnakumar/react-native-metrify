@@ -5,6 +5,7 @@
 
 // Math utilities
 export * from './math';
+export { safeNumber } from './math';
 
 // Layout utilities
 export * from './layout';

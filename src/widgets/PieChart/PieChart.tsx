@@ -2,7 +2,7 @@
  * PieChart Widget - Pie and Donut charts for proportions
  */
 import React, { memo, useMemo } from 'react';
-import { View, Text as RNText, StyleSheet } from 'react-native';
+import { View, Text as RNText, StyleSheet, ScrollView } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Animated, { useAnimatedStyle, useAnimatedProps } from 'react-native-reanimated';
 import {
@@ -99,15 +99,16 @@ export const PieChart = memo<PieChartWidgetProps>((props) => {
     [segments]
   );
 
-  // Calculate chart size
+  // Calculate chart size - FIXED size, not affected by legend
   const padding = theme.spacing.md;
   const titleHeight = title ? theme.fontScale.md + theme.spacing.sm : 0;
-  const legendHeight = showLabels ? segments.length * 24 + theme.spacing.md : 0;
   
-  const availableHeight = dimensions.height - padding * 2 - titleHeight - legendHeight;
-  const availableWidth = dimensions.width - padding * 2;
+  // Maximum height for scrollable legend
+  const maxLegendHeight = dimensions.height - padding * 2 - titleHeight;
   
-  const chartSize = customSize || Math.min(availableHeight, availableWidth);
+  // Chart size is ONLY based on customSize prop or a fixed default
+  // Legend is positioned beside it and does NOT affect the pie size
+  const chartSize = customSize || 200; // Fixed default size
   const center = chartSize / 2;
   const radius = (chartSize - padding) / 2;
   const innerR = variant === 'donut' ? radius * innerRadius : 0;
@@ -191,91 +192,98 @@ export const PieChart = memo<PieChartWidgetProps>((props) => {
         </RNText>
       )}
 
-      {/* Chart */}
-      <View style={styles.chartContainer}>
-        <Svg width={chartSize} height={chartSize}>
-          {pieSegments.map((segment, index) => {
-            const animatedProps = useAnimatedProps(() => {
-              'worklet';
-              const progress = sectorAnimations[index].value;
-              // Animate from startAngle to endAngle (arc sweeps)
-              const startAngle = segment.startAngle;
-              const endAngle = startAngle + (segment.endAngle - startAngle) * progress;
-              
-              // Recreate the path with animated endAngle
-              const path = variant === 'donut'
-                ? createDonutArcPath({
-                    cx: center,
-                    cy: center,
-                    radius,
-                    innerRadius: innerR,
-                    startAngle,
-                    endAngle,
-                  })
-                : createFilledArcPath({
-                    cx: center,
-                    cy: center,
-                    radius,
-                    startAngle,
-                    endAngle,
-                  });
-              
-              return {
-                d: path,
-              };
-            });
+      {/* Chart and Legend - Side by Side Layout */}
+      <View style={styles.contentContainer}>
+        {/* Chart */}
+        <View style={styles.chartContainer}>
+          <Svg width={chartSize} height={chartSize}>
+            {pieSegments.map((segment, index) => {
+              const animatedProps = useAnimatedProps(() => {
+                'worklet';
+                const progress = sectorAnimations[index].value;
+                // Animate from startAngle to endAngle (arc sweeps)
+                const startAngle = segment.startAngle;
+                const endAngle = startAngle + (segment.endAngle - startAngle) * progress;
+                
+                // Recreate the path with animated endAngle
+                const path = variant === 'donut'
+                  ? createDonutArcPath({
+                      cx: center,
+                      cy: center,
+                      radius,
+                      innerRadius: innerR,
+                      startAngle,
+                      endAngle,
+                    })
+                  : createFilledArcPath({
+                      cx: center,
+                      cy: center,
+                      radius,
+                      startAngle,
+                      endAngle,
+                    });
+                
+                return {
+                  d: path,
+                };
+              });
 
-            return (
-              <AnimatedPath
-                key={`segment-${index}`}
-                fill={segment.color}
-                animatedProps={animatedProps}
-              />
-            );
-          })}
-        </Svg>
-      </View>
-
-      {/* Legend */}
-      {showLabels && (
-        <View style={styles.legend}>
-          {pieSegments.map((segment, index) => (
-            <View key={`legend-${index}`} style={styles.legendItem}>
-              <View
-                style={[
-                  styles.legendColor,
-                  { backgroundColor: segment.color },
-                ]}
-              />
-              <View style={styles.legendTextContainer}>
-                <RNText
-                  style={[
-                    styles.legendLabel,
-                    {
-                      color: theme.colors.text,
-                      fontSize: theme.fontScale.sm,
-                    },
-                  ]}
-                >
-                  {segment.label}
-                </RNText>
-                <RNText
-                  style={[
-                    styles.legendValue,
-                    {
-                      color: theme.colors.textSecondary,
-                      fontSize: theme.fontScale.xs,
-                    },
-                  ]}
-                >
-                  {showValues && `${segment.value} `}
-                  {showPercentages && `(${segment.percentage.toFixed(1)}%)`}
-                </RNText>
-              </View>
-            </View>
-          ))}
+              return (
+                <AnimatedPath
+                  key={`segment-${index}`}
+                  fill={segment.color}
+                  animatedProps={animatedProps}
+                />
+              );
+            })}
+          </Svg>
         </View>
-      )}
+
+        {/* Legend - Scrollable on the side */}
+        {showLabels && (
+          <ScrollView 
+            style={[styles.legend, { maxHeight: maxLegendHeight }]}
+            showsVerticalScrollIndicator={segments.length > 6}
+          >
+            {pieSegments.map((segment, index) => (
+              <View key={`legend-${index}`} style={styles.legendItem}>
+                <View
+                  style={[
+                    styles.legendColor,
+                    { backgroundColor: segment.color },
+                  ]}
+                />
+                <View style={styles.legendTextContainer}>
+                  <RNText
+                    style={[
+                      styles.legendLabel,
+                      {
+                        color: theme.colors.text,
+                        fontSize: theme.fontScale.sm,
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {segment.label}
+                  </RNText>
+                  <RNText
+                    style={[
+                      styles.legendValue,
+                      {
+                        color: theme.colors.textSecondary,
+                        fontSize: theme.fontScale.xs,
+                      },
+                    ]}
+                  >
+                    {showValues && `${Number(segment.value.toFixed(2))} `}
+                    {showPercentages && `(${segment.percentage.toFixed(2)}%)`}
+                  </RNText>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        )}
+      </View>
     </View>
   );
 });
@@ -301,13 +309,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    width: '100%',
+  },
   chartContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   legend: {
-    width: '100%',
-    marginTop: 16,
+    marginLeft: 16,
+    flex: 1,
   },
   legendItem: {
     flexDirection: 'row',
@@ -328,6 +342,9 @@ const styles = StyleSheet.create({
   },
   legendLabel: {
     fontWeight: '600',
+    flex: 1,
   },
-  legendValue: {},
+  legendValue: {
+    marginLeft: 8,
+  },
 });

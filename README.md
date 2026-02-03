@@ -14,6 +14,10 @@
 - ✅ Complete examples and demos available in `examples/basic-demo/`
 - ⚠️ Limited testing coverage
 - ⚠️ APIs may change in future versions (beta release)
+- ⚠️ Some widgets may show NaN issues with edge case data (showing stable ones in examples)
+
+**Stable Widgets:** KPI, Gauge, LineChart, BarChart, AreaChart, PieChart, Sparkline, Progress  
+**Beta Widgets:** Other widgets are functional but may have NaN display issues with certain data
 
 **Installation:**
 ```bash
@@ -21,6 +25,8 @@ npm install react-native-metrify@beta
 # or
 yarn add react-native-metrify@beta
 ```
+
+**Latest:** v0.1.0-beta.4 - Critical crash fixes for NaN values
 
 Feedback and contributions welcome!
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)

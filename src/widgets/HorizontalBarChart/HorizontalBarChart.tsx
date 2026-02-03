@@ -91,6 +91,56 @@ export const HorizontalBarChart = memo<HorizontalBarChartWidgetProps>((props) =>
 
   const totalHeight = bars.length * (barHeight + barSpacing);
 
+  // Create AnimatedBarRow component to properly handle hooks
+  const AnimatedBarRow = memo<{
+    bar: typeof bars[0];
+    index: number;
+    progress: Animated.SharedValue<number>;
+    theme: ReturnType<typeof useWidgetTheme>;
+    showLabels: boolean;
+    showValues: boolean;
+    labelWidth: number;
+    chartWidth: number;
+    valueWidth: number;
+    barHeight: number;
+  }>(({ bar, index, progress, theme, showLabels, showValues, labelWidth, chartWidth, valueWidth, barHeight }) => {
+    const animatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      return {
+        width: bar.width * animationProgress,
+      };
+    });
+
+    return (
+      <View key={`row-${index}`} style={styles.barRow}>
+        {showLabels && (
+          <View style={[styles.labelContainer, { width: labelWidth }]}>
+            <RNText style={[styles.label, { color: theme.colors.text, fontSize: theme.fontScale.sm }]} numberOfLines={1}>
+              {bar.label}
+            </RNText>
+          </View>
+        )}
+        
+        <View style={{ width: chartWidth, height: barHeight }}>
+          <Svg width={chartWidth} height={barHeight}>
+            <AnimatedRect x={bar.x} y={0} height={bar.height} fill={bar.color} rx={theme.radius.sm} ry={theme.radius.sm} animatedProps={animatedProps} />
+          </Svg>
+        </View>
+
+        {showValues && (
+          <View style={[styles.valueContainer, { width: valueWidth }]}>
+            <RNText style={[styles.value, { color: theme.colors.textSecondary, fontSize: theme.fontScale.sm }]}>
+              {Number(bar.value.toFixed(2))}
+            </RNText>
+          </View>
+        )}
+      </View>
+    );
+  });
+
+  AnimatedBarRow.displayName = 'AnimatedBarRow';
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -100,41 +150,21 @@ export const HorizontalBarChart = memo<HorizontalBarChartWidgetProps>((props) =>
       )}
 
       <View style={styles.chartContainer}>
-        {bars.map((bar, index) => {
-          const animatedProps = useAnimatedProps(() => {
-            'worklet';
-            const progress = barAnimations[index].value;
-            return {
-              width: bar.width * progress,
-            };
-          });
-
-          return (
-            <View key={`row-${index}`} style={styles.barRow}>
-              {showLabels && (
-                <View style={[styles.labelContainer, { width: labelWidth }]}>
-                  <RNText style={[styles.label, { color: theme.colors.text, fontSize: theme.fontScale.sm }]} numberOfLines={1}>
-                    {bar.label}
-                  </RNText>
-                </View>
-              )}
-              
-              <View style={{ width: chartWidth, height: barHeight }}>
-                <Svg width={chartWidth} height={barHeight}>
-                  <AnimatedRect x={bar.x} y={0} height={bar.height} fill={bar.color} rx={theme.radius.sm} ry={theme.radius.sm} animatedProps={animatedProps} />
-                </Svg>
-              </View>
-
-              {showValues && (
-                <View style={[styles.valueContainer, { width: valueWidth }]}>
-                  <RNText style={[styles.value, { color: theme.colors.textSecondary, fontSize: theme.fontScale.sm }]}>
-                    {bar.value}
-                  </RNText>
-                </View>
-              )}
-            </View>
-          );
-        })}
+        {bars.map((bar, index) => (
+          <AnimatedBarRow
+            key={`row-${index}`}
+            bar={bar}
+            index={index}
+            progress={barAnimations[index]}
+            theme={theme}
+            showLabels={showLabels}
+            showValues={showValues}
+            labelWidth={labelWidth}
+            chartWidth={chartWidth}
+            valueWidth={valueWidth}
+            barHeight={barHeight}
+          />
+        ))}
       </View>
     </View>
   );

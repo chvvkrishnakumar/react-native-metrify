@@ -252,7 +252,7 @@ export const LineChart = memo<LineChartWidgetProps>((props) => {
                   },
                 ]}
               >
-                {label.value.toFixed(0)}
+                {Number(label.value.toFixed(2))}
               </RNText>
             ))}
           </View>

@@ -2,7 +2,7 @@
  * BarChart Widget - Flexible bar chart for comparing values
  */
 import React, { memo, useMemo } from 'react';
-import { View, Text as RNText, StyleSheet } from 'react-native';
+import { View, Text as RNText, StyleSheet, ScrollView } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import Animated, { useAnimatedProps } from 'react-native-reanimated';
 import {
@@ -34,6 +34,8 @@ export const BarChart = memo<BarChartWidgetProps>((props) => {
     showValues = true,
     showLabels = true,
     minBarHeight = 4,
+    minBarWidth: customMinBarWidth = 24,
+    maxBarWidth: customMaxBarWidth,
     maxBars = 20,
     testID,
   } = props;
@@ -110,9 +112,26 @@ export const BarChart = memo<BarChartWidgetProps>((props) => {
   // Find max value for scaling
   const maxValue = useMemo(() => Math.max(...displayData.map(d => d.value)), [displayData]);
 
-  // Calculate bar width
-  const calculatedBarWidth = customBarWidth || 
+  // Calculate bar width with configurable min/max constraints
+  const idealBarWidth = customBarWidth || 
     (chartWidth - (displayData.length - 1) * barSpacing) / displayData.length;
+  
+  let calculatedBarWidth = idealBarWidth;
+  
+  // Apply minimum width constraint
+  if (customMinBarWidth && calculatedBarWidth < customMinBarWidth) {
+    calculatedBarWidth = customMinBarWidth;
+  }
+  
+  // Apply maximum width constraint
+  if (customMaxBarWidth && calculatedBarWidth > customMaxBarWidth) {
+    calculatedBarWidth = customMaxBarWidth;
+  }
+  
+  // Calculate if we need scrolling
+  const totalRequiredWidth = displayData.length * (calculatedBarWidth + barSpacing) - barSpacing;
+  const needsScrolling = totalRequiredWidth > chartWidth;
+  const effectiveChartWidth = needsScrolling ? totalRequiredWidth : chartWidth;
 
   // Generate bars
   const bars = useMemo(() => {
@@ -133,6 +152,9 @@ export const BarChart = memo<BarChartWidgetProps>((props) => {
       };
     });
   }, [displayData, maxValue, chartHeight, calculatedBarWidth, barSpacing, minBarHeight, theme.colors.chartPrimary]);
+  
+  // Determine if labels should show based on available space
+  const shouldShowValues = showValues && calculatedBarWidth >= 32; // Only show if bar width is sufficient
 
   // Staggered animation for bars
   const barAnimations = useStaggeredAnimation(bars.length, {
@@ -140,6 +162,40 @@ export const BarChart = memo<BarChartWidgetProps>((props) => {
     duration: 600,
     easing: 'ease-in-out',
   });
+
+  // Create AnimatedBar component to properly handle hooks
+  const AnimatedBar = memo<{
+    bar: typeof bars[0];
+    index: number;
+    progress: Animated.SharedValue<number>;
+    theme: ReturnType<typeof useWidgetTheme>;
+  }>(({ bar, index, progress, theme }) => {
+    const animatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      const animatedHeight = bar.height * animationProgress;
+      const animatedY = bar.y + (bar.height - animatedHeight);
+      
+      return {
+        y: animatedY,
+        height: animatedHeight,
+      };
+    });
+
+    return (
+      <AnimatedRect
+        key={`bar-${index}`}
+        x={bar.x}
+        width={bar.width}
+        fill={bar.color}
+        rx={theme.radius.sm}
+        ry={theme.radius.sm}
+        animatedProps={animatedProps}
+      />
+    );
+  });
+
+  AnimatedBar.displayName = 'AnimatedBar';
 
   return (
     <View
@@ -173,75 +229,69 @@ export const BarChart = memo<BarChartWidgetProps>((props) => {
 
       {/* Chart */}
       <View style={styles.chartContainer}>
-        <Svg width={chartWidth} height={chartHeight + valueHeight}>
-          {/* Bars with animation */}
-          {bars.map((bar, index) => {
-            const animatedProps = useAnimatedProps(() => {
-              'worklet';
-              const progress = barAnimations[index].value;
-              const animatedHeight = bar.height * progress;
-              const animatedY = bar.y + (bar.height - animatedHeight);
+        <ScrollView 
+          horizontal={true}
+          scrollEnabled={needsScrolling}
+          showsHorizontalScrollIndicator={needsScrolling}
+          contentContainerStyle={needsScrolling ? { paddingRight: padding } : undefined}
+        >
+          <View style={{ width: effectiveChartWidth }}>
+            <Svg width={effectiveChartWidth} height={chartHeight + valueHeight}>
+              {/* Bars with animation */}
+              {bars.map((bar, index) => (
+                <AnimatedBar
+                  key={`bar-${index}`}
+                  bar={bar}
+                  index={index}
+                  progress={barAnimations[index]}
+                  theme={theme}
+                />
+              ))}
               
-              return {
-                y: animatedY,
-                height: animatedHeight,
-              };
-            });
+              {/* Values */}
+              {shouldShowValues && bars.map((bar, index) => (
+                <Text
+                  key={`value-${index}`}
+                  x={bar.x + bar.width / 2}
+                  y={bar.y - 4}
+                  text={Number(bar.value.toFixed(2)).toString()}
+                  fontSize={theme.fontScale.xs}
+                  fill={theme.colors.textSecondary}
+                  textAnchor="middle"
+                />
+              ))}
+            </Svg>
 
-            return (
-              <AnimatedRect
-                key={`bar-${index}`}
-                x={bar.x}
-                width={bar.width}
-                fill={bar.color}
-                rx={theme.radius.sm}
-                ry={theme.radius.sm}
-                animatedProps={animatedProps}
-              />
-            );
-          })}
-          
-          {/* Values */}
-          {showValues && bars.map((bar, index) => (
-            <Text
-              key={`value-${index}`}
-              x={bar.x + bar.width / 2}
-              y={bar.y - 4}
-              text={bar.value.toString()}
-              fontSize={theme.fontScale.xs}
-              fill={theme.colors.textSecondary}
-              textAnchor="middle"
-            />
-          ))}
-        </Svg>
-
-        {/* Labels */}
-        {showLabels && (
-          <View style={styles.labelsContainer}>
-            {bars.map((bar, index) => (
-              <View
-                key={`label-${index}`}
-                style={[
-                  styles.labelItem,
-                  { width: bar.width + barSpacing },
-                ]}
-              >
-                <RNText
-                  style={[
-                    styles.labelText,
-                    {
-                      color: theme.colors.textSecondary,
-                      fontSize: theme.fontScale.xs,
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {bar.label}
-                </RNText>
+            {/* Labels */}
+            {showLabels && (
+              <View style={styles.labelsContainer}>
+                {bars.map((bar, index) => (
+                  <View
+                    key={`label-${index}`}
+                    style={[
+                      styles.labelItem,
+                      { width: calculatedBarWidth },
+                    ]}
+                  >
+                    <RNText
+                      style={[
+                        styles.labelText,
+                        {
+                          color: theme.colors.textSecondary,
+                          fontSize: theme.fontScale.xs,
+                        },
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {bar.label}
+                    </RNText>
+                  </View>
+                ))}
               </View>
-            ))}
+            )}
           </View>
-        )}
+        </ScrollView>
       </View>
     </View>
   );
@@ -270,17 +320,20 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   chartContainer: {
-    flex: 1,
     width: '100%',
+    overflow: 'hidden',
   },
   labelsContainer: {
     flexDirection: 'row',
     marginTop: 4,
+    gap: 8,
   },
   labelItem: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
   labelText: {
     textAlign: 'center',
+    width: '100%',
   },
 });

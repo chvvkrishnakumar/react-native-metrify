@@ -37,6 +37,8 @@ export interface BarChartSimpleProps {
   showValues?: boolean;
   showLabels?: boolean;
   minBarHeight?: number;
+  minBarWidth?: number;
+  maxBarWidth?: number;
   maxBars?: number;
   testID?: string;
 }
@@ -57,6 +59,8 @@ export interface BarChartLegacyProps {
   showValues?: boolean;
   showLabels?: boolean;
   minBarHeight?: number;
+  minBarWidth?: number;
+  maxBarWidth?: number;
   maxBars?: number;
   testID?: string;
 }

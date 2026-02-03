@@ -2,6 +2,84 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0-beta.5] - 2026-02-03
+
+### 🚨 Critical Bug Fixes
+- **CRITICAL**: Fixed React Hooks violations in 8 chart components that caused app crashes
+  - Fixed BarChart - `useAnimatedProps` called inside `.map()` loop
+  - Fixed GroupedBarChart - `useAnimatedProps` called inside nested `.map()` loops
+  - Fixed HorizontalBarChart - `useAnimatedProps` called inside `.map()` loop
+  - Fixed StackedBarChart - `useAnimatedProps` called inside nested `.map()` loops
+  - Fixed FunnelChart - `useAnimatedProps` called inside `.map()` loop
+  - Fixed CandlestickChart - 2 `useAnimatedProps` calls inside `.map()` loop
+  - Fixed BoxPlot - 4 `useAnimatedProps` calls inside `.map()` loop (most complex!)
+  - Fixed BubbleChart - `useAnimatedProps` called inside nested `.map()` loops
+- **Solution**: Extracted animated rendering into separate memoized components (e.g., `AnimatedBar`, `AnimatedBox`, `AnimatedSegment`) so hooks are called at component top level
+
+### 🎨 Layout & UX Improvements
+- **PieChart**: Fixed chart size to be completely independent of legend
+  - Chart size now controlled only by `size` prop (default: 200px)
+  - Legend positioned on right side with vertical scrolling
+  - Legend never affects pie dimensions regardless of item count
+- **BarChart**: Added automatic horizontal scrolling for many data points
+  - Smart scrolling activates when bars exceed container width
+  - New configurable props: `minBarWidth` (default: 24px) and `maxBarWidth`
+  - Intelligent value label hiding when bars are too narrow (< 32px)
+  - X-axis labels now truncate with ellipsis instead of breaking layout
+
+### 🔢 Data Formatting
+- Standardized all numeric displays to **2 decimal places** across all charts:
+  - BarChart, GroupedBarChart, HorizontalBarChart values
+  - PieChart percentages and values
+  - LineChart Y-axis labels
+  - BoxPlot Y-axis labels  
+  - BubbleChart Y-axis labels
+  - FunnelChart percentages
+  - KPI delta percentages
+
+### 📝 What This Fixes
+- App crashes with error: "React has detected a change in the order of Hooks called by BarChart"
+- App crashes with error: "Should have a queue. You are likely calling Hooks conditionally"
+- Long floating point numbers (e.g., 95.25848104896221) now display as clean values (e.g., 95.26)
+- PieChart shrinking when legend has many items
+- BarChart bars becoming unreadable when displaying many data points
+- Value labels overlapping on narrow bars
+
+### 🔧 API Additions
+- **BarChart**: New `minBarWidth?: number` prop (default: 24px)
+- **BarChart**: New `maxBarWidth?: number` prop for width constraints
+
+### ✅ Stability Improvements
+- **All 24 widgets** are now stable and production-ready after fixing hooks violations
+- All bar-based charts (BarChart, GroupedBarChart, HorizontalBarChart, StackedBarChart) now render reliably with any data size
+- Complex charts (BoxPlot, CandlestickChart, BubbleChart, FunnelChart) now handle animations properly
+
+---
+
+## [0.1.0-beta.4] - 2026-02-03
+
+### 🚨 Critical Bug Fixes
+- **CRITICAL**: Fixed native crashes caused by NaN (Not a Number) values in SVG rendering
+- Added comprehensive `safeNumber` utility with NaN/Infinity protection across entire codebase
+- Protected all SVG primitives (Circle, Path, Polygon, Text, Rect, Line) from invalid coordinate values
+- Fixed path generators (rect, line, arc) to handle NaN values gracefully
+- Added SafeRect and SafeLine wrapper components for additional protection
+
+### 🔧 Technical Improvements
+- All math utilities (clamp, normalize, interpolate, polarToCartesian) now have NaN protection
+- All coordinate calculations validated before reaching native SVG layer
+- Path string generators sanitize all numeric inputs
+- Invalid dimensions (width/height <= 0) now skip rendering instead of crashing
+- Zero-cost protection via worklet-compatible safeNumber function
+
+### 📝 What This Fixes
+- App crashes with error: "[CALayer setPosition:] attempted to set position to NaN"
+- Crashes when rendering widgets with edge case data (empty, null, division by zero)
+- Infinity values in calculations causing native layer failures
+- All RNSVGRenderable crashes related to invalid frame/position values
+
+---
+
 ## [0.1.0-beta.3] - 2026-02-03
 
 ### 🐛 Bug Fixes

@@ -127,6 +127,54 @@ export const GroupedBarChart = memo<GroupedBarChartWidgetProps>((props) => {
     easing: 'ease-in-out',
   });
 
+  // Create AnimatedBar component to properly handle hooks
+  const AnimatedBar = memo<{
+    bar: typeof groups[0]['bars'][0];
+    groupIndex: number;
+    barIndex: number;
+    globalBarIndex: number;
+    progress: Animated.SharedValue<number>;
+    theme: ReturnType<typeof useWidgetTheme>;
+    showValues: boolean;
+  }>(({ bar, groupIndex, barIndex, globalBarIndex, progress, theme, showValues }) => {
+    const animatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      const animatedHeight = bar.height * animationProgress;
+      const animatedY = bar.y + (bar.height - animatedHeight);
+      
+      return {
+        y: animatedY,
+        height: animatedHeight,
+      };
+    });
+
+    return (
+      <React.Fragment key={`group-${groupIndex}-bar-${barIndex}`}>
+        <AnimatedRect
+          x={bar.x}
+          width={bar.width}
+          fill={bar.color}
+          rx={theme.radius.sm}
+          ry={theme.radius.sm}
+          animatedProps={animatedProps}
+        />
+        {showValues && (
+          <Text
+            x={bar.x + bar.width / 2}
+            y={bar.y - 4}
+            text={Number(bar.value.toFixed(2)).toString()}
+            fontSize={theme.fontScale.xs}
+            fill={theme.colors.textSecondary}
+            textAnchor="middle"
+          />
+        )}
+      </React.Fragment>
+    );
+  });
+
+  AnimatedBar.displayName = 'AnimatedBar';
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -145,39 +193,17 @@ export const GroupedBarChart = memo<GroupedBarChartWidgetProps>((props) => {
             
             return group.bars.map((bar, barIndex) => {
               const globalBarIndex = barIndexOffset + barIndex;
-              const animatedProps = useAnimatedProps(() => {
-                'worklet';
-                const progress = barAnimations[globalBarIndex].value;
-                const animatedHeight = bar.height * progress;
-                const animatedY = bar.y + (bar.height - animatedHeight);
-                
-                return {
-                  y: animatedY,
-                  height: animatedHeight,
-                };
-              });
-
               return (
-                <React.Fragment key={`group-${groupIndex}-bar-${barIndex}`}>
-                  <AnimatedRect
-                    x={bar.x}
-                    width={bar.width}
-                    fill={bar.color}
-                    rx={theme.radius.sm}
-                    ry={theme.radius.sm}
-                    animatedProps={animatedProps}
-                  />
-                  {showValues && (
-                    <Text
-                      x={bar.x + bar.width / 2}
-                      y={bar.y - 4}
-                    text={bar.value.toString()}
-                    fontSize={theme.fontScale.xs}
-                    fill={theme.colors.textSecondary}
-                    textAnchor="middle"
-                  />
-                )}
-                </React.Fragment>
+                <AnimatedBar
+                  key={`group-${groupIndex}-bar-${barIndex}`}
+                  bar={bar}
+                  groupIndex={groupIndex}
+                  barIndex={barIndex}
+                  globalBarIndex={globalBarIndex}
+                  progress={barAnimations[globalBarIndex]}
+                  theme={theme}
+                  showValues={showValues}
+                />
               );
             });
           })}

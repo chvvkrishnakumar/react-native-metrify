@@ -117,7 +117,7 @@ export const KPI = memo<KPIWidgetProps>(({
   const formattedDelta = useMemo(() => {
     if (delta === undefined) return null;
     const sign = delta >= 0 ? '+' : '';
-    return `${sign}${delta.toFixed(1)}%`;
+    return `${sign}${delta.toFixed(2)}%`;
   }, [delta]);
 
   // Trend icon

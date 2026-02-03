@@ -3,6 +3,7 @@
  */
 import React, { memo } from 'react';
 import { Text as SVGText } from 'react-native-svg';
+import { safeNumber } from '../../core/math';
 
 export interface TextProps {
   x: number;
@@ -18,7 +19,7 @@ export interface TextProps {
 }
 
 /**
- * SVG Text component with sensible defaults
+ * SVG Text component with sensible defaults and NaN protection
  */
 export const Text = memo<TextProps>(({
   x,
@@ -32,16 +33,22 @@ export const Text = memo<TextProps>(({
   opacity = 1,
   testID,
 }) => {
+  // CRITICAL: Prevent NaN values from causing native crashes
+  const safeX = safeNumber(x, 0);
+  const safeY = safeNumber(y, 0);
+  const safeFontSize = safeNumber(fontSize, 14);
+  const safeOpacity = safeNumber(opacity, 1);
+  
   return (
     <SVGText
-      x={x}
-      y={y}
-      fontSize={fontSize}
+      x={safeX}
+      y={safeY}
+      fontSize={safeFontSize}
       fontWeight={fontWeight}
       fill={fill}
       textAnchor={textAnchor}
       alignmentBaseline={alignmentBaseline}
-      opacity={opacity}
+      opacity={safeOpacity}
       testID={testID}
     >
       {text}

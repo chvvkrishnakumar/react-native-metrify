@@ -4,22 +4,39 @@
  */
 
 /**
- * Clamps a value between min and max
+ * Ensures a value is a valid number, returns default if NaN or Infinity
+ * CRITICAL: Prevents crashes in SVG rendering when values are invalid
+ */
+export function safeNumber(value: number, defaultValue: number = 0): number {
+  'worklet';
+  if (!isFinite(value) || isNaN(value)) {
+    return defaultValue;
+  }
+  return value;
+}
+
+/**
+ * Clamps a value between min and max (with NaN protection)
  */
 export function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
+  const safe = safeNumber(value, min);
+  return Math.min(Math.max(safe, min), max);
 }
 
 /**
- * Normalizes a value from [min, max] to [0, 1]
+ * Normalizes a value from [min, max] to [0, 1] (with NaN protection)
  */
 export function normalize(value: number, min: number, max: number): number {
-  if (max === min) return 0;
-  return clamp((value - min) / (max - min), 0, 1);
+  const safeValue = safeNumber(value, min);
+  const safeMin = safeNumber(min, 0);
+  const safeMax = safeNumber(max, 1);
+  
+  if (safeMax === safeMin) return 0;
+  return clamp((safeValue - safeMin) / (safeMax - safeMin), 0, 1);
 }
 
 /**
- * Interpolates a value from one range to another
+ * Interpolates a value from one range to another (with NaN protection)
  * @example interpolate(5, [0, 10], [0, 100]) // 50
  */
 export function interpolate(
@@ -28,11 +45,12 @@ export function interpolate(
   outRange: [number, number]
 ): number {
   const normalized = normalize(value, inRange[0], inRange[1]);
-  return outRange[0] + normalized * (outRange[1] - outRange[0]);
+  const result = outRange[0] + normalized * (outRange[1] - outRange[0]);
+  return safeNumber(result, outRange[0]);
 }
 
 /**
- * Converts polar coordinates to cartesian
+ * Converts polar coordinates to cartesian (with NaN protection)
  * @param cx - Center X
  * @param cy - Center Y
  * @param r - Radius
@@ -45,10 +63,15 @@ export function polarToCartesian(
   angle: number
 ): { x: number; y: number } {
   'worklet';
-  const angleInRadians = ((angle - 90) * Math.PI) / 180;
+  const safeCx = safeNumber(cx, 0);
+  const safeCy = safeNumber(cy, 0);
+  const safeR = safeNumber(r, 0);
+  const safeAngle = safeNumber(angle, 0);
+  
+  const angleInRadians = ((safeAngle - 90) * Math.PI) / 180;
   return {
-    x: cx + r * Math.cos(angleInRadians),
-    y: cy + r * Math.sin(angleInRadians),
+    x: safeNumber(safeCx + safeR * Math.cos(angleInRadians), safeCx),
+    y: safeNumber(safeCy + safeR * Math.sin(angleInRadians), safeCy),
   };
 }
 

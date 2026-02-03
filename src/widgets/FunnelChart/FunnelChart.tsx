@@ -90,9 +90,9 @@ export const FunnelChart = memo<FunnelChartWidgetProps>((props) => {
         ${centerX - bottomWidth / 2},${y + stageHeight}
       `;
 
-      const percentage = ((stage.value / maxValue) * 100).toFixed(1);
+      const percentage = ((stage.value / maxValue) * 100).toFixed(2);
       const conversionRate = index > 0
-        ? ((stage.value / stages[index - 1].value) * 100).toFixed(1)
+        ? ((stage.value / stages[index - 1].value) * 100).toFixed(2)
         : '100.0';
 
       return {
@@ -107,6 +107,31 @@ export const FunnelChart = memo<FunnelChartWidgetProps>((props) => {
     });
   }, [stages, chartWidth, chartHeight, stageHeight, stageSpacing, maxValue, theme]);
 
+  // Create AnimatedStage component to properly handle hooks
+  const AnimatedStage = memo<{
+    stage: typeof funnelStages[0];
+    index: number;
+    progress: Animated.SharedValue<number>;
+  }>(({ stage, index, progress }) => {
+    const animatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      return {
+        opacity: animationProgress * 0.9,
+      };
+    });
+
+    return (
+      <AnimatedPolygon
+        points={stage.points}
+        fill={stage.color}
+        animatedProps={animatedProps}
+      />
+    );
+  });
+
+  AnimatedStage.displayName = 'AnimatedStage';
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -118,24 +143,14 @@ export const FunnelChart = memo<FunnelChartWidgetProps>((props) => {
       <View style={styles.chartRow}>
         <View>
           <Svg width={chartWidth} height={chartHeight}>
-            {funnelStages.map((stage, index) => {
-              const animatedProps = useAnimatedProps(() => {
-                'worklet';
-                const progress = stageAnimations[index] ? stageAnimations[index].value : 1;
-                return {
-                  opacity: progress * 0.9,
-                };
-              });
-
-              return (
-                <AnimatedPolygon
-                  key={`stage-${index}`}
-                  points={stage.points}
-                  fill={stage.color}
-                  animatedProps={animatedProps}
-                />
-              );
-            })}
+            {funnelStages.map((stage, index) => (
+              <AnimatedStage
+                key={`stage-${index}`}
+                stage={stage}
+                index={index}
+                progress={stageAnimations[index] || { value: 1 } as any}
+              />
+            ))}
           </Svg>
         </View>
 

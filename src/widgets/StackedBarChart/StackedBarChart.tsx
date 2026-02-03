@@ -123,6 +123,42 @@ export const StackedBarChart = memo<StackedBarChartWidgetProps>((props) => {
     easing: 'ease-out',
   });
 
+  // Create AnimatedSegment component to properly handle hooks
+  const AnimatedSegment = memo<{
+    segment: typeof bars[0]['segments'][0];
+    barIndex: number;
+    segmentIndex: number;
+    isTopSegment: boolean;
+    progress: Animated.SharedValue<number>;
+    theme: ReturnType<typeof useWidgetTheme>;
+  }>(({ segment, barIndex, segmentIndex, isTopSegment, progress, theme }) => {
+    const animatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      const animatedHeight = segment.height * animationProgress;
+      const animatedY = segment.y + (segment.height - animatedHeight);
+      
+      return {
+        y: animatedY,
+        height: animatedHeight,
+      };
+    });
+
+    return (
+      <AnimatedRect
+        key={`bar-${barIndex}-seg-${segmentIndex}`}
+        x={segment.x}
+        width={segment.width}
+        fill={segment.color}
+        rx={isTopSegment ? theme.radius.sm : 0}
+        ry={isTopSegment ? theme.radius.sm : 0}
+        animatedProps={animatedProps}
+      />
+    );
+  });
+
+  AnimatedSegment.displayName = 'AnimatedSegment';
+
   return (
     <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
       {title && (
@@ -134,31 +170,17 @@ export const StackedBarChart = memo<StackedBarChartWidgetProps>((props) => {
       <View style={styles.chartContainer}>
         <Svg width={chartWidth} height={chartHeight}>
           {bars.map((bar, barIndex) => (
-            bar.segments.map((segment, segmentIndex) => {
-              const animatedProps = useAnimatedProps(() => {
-                'worklet';
-                const progress = barAnimations[barIndex] ? barAnimations[barIndex].value : 1;
-                const animatedHeight = segment.height * progress;
-                const animatedY = segment.y + (segment.height - animatedHeight);
-                
-                return {
-                  y: animatedY,
-                  height: animatedHeight,
-                };
-              });
-
-              return (
-                <AnimatedRect
-                  key={`bar-${barIndex}-seg-${segmentIndex}`}
-                  x={segment.x}
-                  width={segment.width}
-                  fill={segment.color}
-                  rx={segmentIndex === bar.segments.length - 1 ? theme.radius.sm : 0}
-                  ry={segmentIndex === bar.segments.length - 1 ? theme.radius.sm : 0}
-                  animatedProps={animatedProps}
-                />
-              );
-            })
+            bar.segments.map((segment, segmentIndex) => (
+              <AnimatedSegment
+                key={`bar-${barIndex}-seg-${segmentIndex}`}
+                segment={segment}
+                barIndex={barIndex}
+                segmentIndex={segmentIndex}
+                isTopSegment={segmentIndex === bar.segments.length - 1}
+                progress={barAnimations[barIndex] || { value: 1 } as any}
+                theme={theme}
+              />
+            ))
           ))}
         </Svg>
 

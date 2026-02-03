@@ -1,6 +1,7 @@
 /**
  * SVG rectangle path generators
  */
+import { safeNumber } from '../../core/math';
 
 export interface RectConfig {
   x: number;
@@ -11,33 +12,40 @@ export interface RectConfig {
 }
 
 /**
- * Creates a rounded rectangle path
+ * Creates a rounded rectangle path with NaN protection
  */
 export function createRoundedRectPath(config: RectConfig): string {
   const { x, y, width, height, radius = 0 } = config;
   
-  if (radius === 0) {
-    return `M ${x} ${y} L ${x + width} ${y} L ${x + width} ${y + height} L ${x} ${y + height} Z`;
+  // CRITICAL: Prevent NaN from causing crashes
+  const safeX = safeNumber(x, 0);
+  const safeY = safeNumber(y, 0);
+  const safeWidth = safeNumber(width, 0);
+  const safeHeight = safeNumber(height, 0);
+  const safeRadius = safeNumber(radius, 0);
+  
+  if (safeRadius === 0 || safeWidth <= 0 || safeHeight <= 0) {
+    return `M ${safeX} ${safeY} L ${safeX + safeWidth} ${safeY} L ${safeX + safeWidth} ${safeY + safeHeight} L ${safeX} ${safeY + safeHeight} Z`;
   }
   
-  const r = Math.min(radius, width / 2, height / 2);
+  const r = Math.min(safeRadius, safeWidth / 2, safeHeight / 2);
   
   return [
-    `M ${x + r} ${y}`,
-    `L ${x + width - r} ${y}`,
-    `Q ${x + width} ${y} ${x + width} ${y + r}`,
-    `L ${x + width} ${y + height - r}`,
-    `Q ${x + width} ${y + height} ${x + width - r} ${y + height}`,
-    `L ${x + r} ${y + height}`,
-    `Q ${x} ${y + height} ${x} ${y + height - r}`,
-    `L ${x} ${y + r}`,
-    `Q ${x} ${y} ${x + r} ${y}`,
+    `M ${safeX + r} ${safeY}`,
+    `L ${safeX + safeWidth - r} ${safeY}`,
+    `Q ${safeX + safeWidth} ${safeY} ${safeX + safeWidth} ${safeY + r}`,
+    `L ${safeX + safeWidth} ${safeY + safeHeight - r}`,
+    `Q ${safeX + safeWidth} ${safeY + safeHeight} ${safeX + safeWidth - r} ${safeY + safeHeight}`,
+    `L ${safeX + r} ${safeY + safeHeight}`,
+    `Q ${safeX} ${safeY + safeHeight} ${safeX} ${safeY + safeHeight - r}`,
+    `L ${safeX} ${safeY + r}`,
+    `Q ${safeX} ${safeY} ${safeX + r} ${safeY}`,
     'Z',
   ].join(' ');
 }
 
 /**
- * Creates a rectangle with only specific corners rounded
+ * Creates a rectangle with only specific corners rounded (with NaN protection)
  */
 export function createPartiallyRoundedRectPath(
   config: RectConfig & {
@@ -58,21 +66,27 @@ export function createPartiallyRoundedRectPath(
     radiusBottomLeft = 0,
   } = config;
   
-  const rtl = Math.min(radiusTopLeft, width / 2, height / 2);
-  const rtr = Math.min(radiusTopRight, width / 2, height / 2);
-  const rbr = Math.min(radiusBottomRight, width / 2, height / 2);
-  const rbl = Math.min(radiusBottomLeft, width / 2, height / 2);
+  // CRITICAL: Prevent NaN from causing crashes
+  const safeX = safeNumber(x, 0);
+  const safeY = safeNumber(y, 0);
+  const safeWidth = safeNumber(width, 0);
+  const safeHeight = safeNumber(height, 0);
+  
+  const rtl = Math.min(safeNumber(radiusTopLeft, 0), safeWidth / 2, safeHeight / 2);
+  const rtr = Math.min(safeNumber(radiusTopRight, 0), safeWidth / 2, safeHeight / 2);
+  const rbr = Math.min(safeNumber(radiusBottomRight, 0), safeWidth / 2, safeHeight / 2);
+  const rbl = Math.min(safeNumber(radiusBottomLeft, 0), safeWidth / 2, safeHeight / 2);
   
   return [
-    `M ${x + rtl} ${y}`,
-    `L ${x + width - rtr} ${y}`,
-    rtr > 0 ? `Q ${x + width} ${y} ${x + width} ${y + rtr}` : '',
-    `L ${x + width} ${y + height - rbr}`,
-    rbr > 0 ? `Q ${x + width} ${y + height} ${x + width - rbr} ${y + height}` : '',
-    `L ${x + rbl} ${y + height}`,
-    rbl > 0 ? `Q ${x} ${y + height} ${x} ${y + height - rbl}` : '',
-    `L ${x} ${y + rtl}`,
-    rtl > 0 ? `Q ${x} ${y} ${x + rtl} ${y}` : '',
+    `M ${safeX + rtl} ${safeY}`,
+    `L ${safeX + safeWidth - rtr} ${safeY}`,
+    rtr > 0 ? `Q ${safeX + safeWidth} ${safeY} ${safeX + safeWidth} ${safeY + rtr}` : '',
+    `L ${safeX + safeWidth} ${safeY + safeHeight - rbr}`,
+    rbr > 0 ? `Q ${safeX + safeWidth} ${safeY + safeHeight} ${safeX + safeWidth - rbr} ${safeY + safeHeight}` : '',
+    `L ${safeX + rbl} ${safeY + safeHeight}`,
+    rbl > 0 ? `Q ${safeX} ${safeY + safeHeight} ${safeX} ${safeY + safeHeight - rbl}` : '',
+    `L ${safeX} ${safeY + rtl}`,
+    rtl > 0 ? `Q ${safeX} ${safeY} ${safeX + rtl} ${safeY}` : '',
     'Z',
   ]
     .filter(Boolean)

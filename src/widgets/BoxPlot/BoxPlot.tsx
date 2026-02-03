@@ -141,77 +141,62 @@ export const BoxPlot = memo<BoxPlotWidgetProps>((props) => {
     });
   }, [data, chartHeight, globalMin, globalMax, boxWidth, boxSpacing]);
 
-  return (
-    <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
-      {title && (
-        <RNText style={[styles.title, { color: theme.colors.text, fontSize: theme.fontScale.md, fontWeight: 'bold', marginBottom: theme.spacing.sm }]}>
-          {title}
-        </RNText>
-      )}
+  // Create AnimatedBox component to properly handle hooks
+  const AnimatedBox = memo<{
+    box: typeof boxes[0];
+    index: number;
+    progress: Animated.SharedValue<number>;
+    boxColor: string;
+    boxWidth: number;
+  }>(({ box, index, progress, boxColor, boxWidth }) => {
+    // Animate whisker lines from center
+    const whiskerAnimatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      const lowerWhiskerLength = (box.q1Y - box.minY) * animationProgress;
+      const upperWhiskerLength = (box.maxY - box.q3Y) * animationProgress;
+      
+      return {
+        y1: box.q1Y - lowerWhiskerLength,
+        y2: box.q3Y + upperWhiskerLength,
+      };
+    });
 
-      <View style={styles.chartRow}>
-        {/* Y-Axis */}
-        <View style={[styles.yAxis, { width: yAxisWidth }]}>
-          {yAxisLabels.map((label, index) => (
-            <RNText key={`y-${index}`} style={[styles.yAxisLabel, { color: theme.colors.textSecondary, fontSize: theme.fontScale.xs, top: label.y - 6 }]}>
-              {label.value.toFixed(0)}
-            </RNText>
-          ))}
-        </View>
+    // Animate box height from center
+    const boxAnimatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      const animatedHeight = box.boxHeight * animationProgress;
+      const centerY = box.boxY + box.boxHeight / 2;
+      const animatedY = centerY - animatedHeight / 2;
+      
+      return {
+        y: animatedY,
+        height: animatedHeight,
+        opacity: animationProgress * 0.3,
+      };
+    });
 
-        <View>
-          <Svg width={chartWidth} height={chartHeight}>
-            {boxes.map((box, index) => {
-              const medianLineY = (box.q1Y + box.q3Y) / 2;
-              
-              // Animate whisker lines from center
-              const whiskerAnimatedProps = useAnimatedProps(() => {
-                'worklet';
-                const progress = boxAnimations[index] ? boxAnimations[index].value : 1;
-                const lowerWhiskerLength = (box.q1Y - box.minY) * progress;
-                const upperWhiskerLength = (box.maxY - box.q3Y) * progress;
-                
-                return {
-                  y1: box.q1Y - lowerWhiskerLength,
-                  y2: box.q3Y + upperWhiskerLength,
-                };
-              });
+    // Animate median line
+    const medianAnimatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      return {
+        opacity: animationProgress,
+      };
+    });
 
-              // Animate box height from center
-              const boxAnimatedProps = useAnimatedProps(() => {
-                'worklet';
-                const progress = boxAnimations[index] ? boxAnimations[index].value : 1;
-                const animatedHeight = box.boxHeight * progress;
-                const centerY = box.boxY + box.boxHeight / 2;
-                const animatedY = centerY - animatedHeight / 2;
-                
-                return {
-                  y: animatedY,
-                  height: animatedHeight,
-                  opacity: progress * 0.3,
-                };
-              });
+    // Animate outliers
+    const outlierAnimatedProps = useAnimatedProps(() => {
+      'worklet';
+      const animationProgress = progress.value;
+      return {
+        r: 3 * animationProgress,
+        opacity: animationProgress * 0.8,
+      };
+    });
 
-              // Animate median line
-              const medianAnimatedProps = useAnimatedProps(() => {
-                'worklet';
-                const progress = boxAnimations[index] ? boxAnimations[index].value : 1;
-                return {
-                  opacity: progress,
-                };
-              });
-
-              // Animate outliers
-              const outlierAnimatedProps = useAnimatedProps(() => {
-                'worklet';
-                const progress = boxAnimations[index] ? boxAnimations[index].value : 1;
-                return {
-                  r: 3 * progress,
-                  opacity: progress * 0.8,
-                };
-              });
-
-              return (
+    return (
                 <React.Fragment key={`box-${index}`}>
                   {/* Whisker lines */}
                   <AnimatedLine
@@ -276,8 +261,41 @@ export const BoxPlot = memo<BoxPlotWidgetProps>((props) => {
                     />
                   ))}
                 </React.Fragment>
-              );
-            })}
+    );
+  });
+
+  AnimatedBox.displayName = 'AnimatedBox';
+
+  return (
+    <View style={[styles.wrapper, { width: dimensions.width, height: dimensions.height, backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, padding }]} testID={testID}>
+      {title && (
+        <RNText style={[styles.title, { color: theme.colors.text, fontSize: theme.fontScale.md, fontWeight: 'bold', marginBottom: theme.spacing.sm }]}>
+          {title}
+        </RNText>
+      )}
+
+      <View style={styles.chartRow}>
+        {/* Y-Axis */}
+        <View style={[styles.yAxis, { width: yAxisWidth }]}>
+          {yAxisLabels.map((label, index) => (
+            <RNText key={`y-${index}`} style={[styles.yAxisLabel, { color: theme.colors.textSecondary, fontSize: theme.fontScale.xs, top: label.y - 6 }]}>
+              {Number(label.value.toFixed(2))}
+            </RNText>
+          ))}
+        </View>
+
+        <View>
+          <Svg width={chartWidth} height={chartHeight}>
+            {boxes.map((box, index) => (
+              <AnimatedBox
+                key={`box-${index}`}
+                box={box}
+                index={index}
+                progress={boxAnimations[index] || { value: 1 } as any}
+                boxColor={boxColor}
+                boxWidth={boxWidth}
+              />
+            ))}
           </Svg>
 
           {showLabels && (
