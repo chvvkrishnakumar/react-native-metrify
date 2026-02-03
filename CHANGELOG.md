@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.0-beta.3] - 2026-02-03
+
+### 🐛 Bug Fixes
+- **Critical**: Fixed worklet error "[Worklets] Tried to synchronously call a non-worklet function 'formatNumber' on the UI thread"
+- Made `formatNumber` function worklet-compatible by adding 'worklet' directive
+- Replaced `Intl.NumberFormat` with worklet-compatible string manipulation (regex-based comma formatting)
+- Made `getTrendColor` function worklet-compatible
+- Fixed KPI and Gauge widgets crashing when using animations with React Native Reanimated
+
+### 🔧 Technical Improvements
+- All formatting functions now work on the UI thread in React Native Reanimated
+- Simplified currency formatting to `$1,234,567` format (worklet-compatible)
+- Number formatting now uses regex-based comma insertion for better performance
+
+---
+
 ## [0.1.0-beta.2] - 2026-01-27
 
 **🎨 Animation System Overhaul**

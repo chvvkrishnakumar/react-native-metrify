@@ -32,20 +32,27 @@ export function dataToPoints(
 }
 
 /**
- * Formats numbers for display
+ * Formats numbers for display (worklet-compatible)
  */
 export function formatNumber(
   value: number,
   format?: 'number' | 'currency' | 'percent' | 'compact'
 ): string {
+  'worklet';
+  
+  // Helper to format number with commas (worklet-compatible)
+  const addCommas = (num: number): string => {
+    'worklet';
+    const parts = num.toFixed(0).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  };
+  
   switch (format) {
     case 'currency':
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(value);
+      // Worklet-compatible currency formatting
+      const currencyValue = Math.round(value);
+      return `$${addCommas(currencyValue)}`;
     
     case 'percent':
       return `${value.toFixed(1)}%`;
@@ -57,21 +64,24 @@ export function formatNumber(
       if (value >= 1_000) {
         return `${(value / 1_000).toFixed(1)}K`;
       }
-      return value.toString();
+      return Math.round(value).toString();
     
     case 'number':
     default:
-      return new Intl.NumberFormat('en-US').format(value);
+      // Worklet-compatible number formatting with commas
+      return addCommas(value);
   }
 }
 
 /**
- * Gets color for trend direction
+ * Gets color for trend direction (worklet-compatible)
  */
 export function getTrendColor(
   trend: 'up' | 'down' | 'neutral',
   colors: { positive: string; negative: string; neutral: string }
 ): string {
+  'worklet';
+  
   switch (trend) {
     case 'up':
       return colors.positive;
